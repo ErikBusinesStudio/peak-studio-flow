@@ -1,103 +1,86 @@
-import { useQuery } from "@tanstack/react-query";
-import { api, fmtEur, fmtDate } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Slider } from "@/components/ui/slider";
-import { Plus, Trash2, PiggyBank, Bike, TrendingUp } from "lucide-react";
-import { useMutate } from "@/lib/hooks";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, fmtEur, type Saving, type Settings } from "@/lib/db";
+import { P } from "@/lib/theme";
+import { Sec, Btn, Field, Card } from "@/components/ui/Sec";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Savings() {
-  const { data: savings = [] } = useQuery({ queryKey: ["savings"], queryFn: api.savings.list });
-  const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: api.settings.get });
-  const create = useMutate(["savings"], (v) => api.savings.create(v as never) as unknown as Promise<unknown>, "Versamento aggiunto");
-  const remove = useMutate(["savings"], (id) => api.savings.remove(id as string) as unknown as Promise<unknown>);
-  const updateSettings = useMutate(["settings"], (v) => api.settings.update(v as never) as unknown as Promise<unknown>);
+  const qc = useQueryClient();
+  const { data: savings = [] } = useQuery<Saving[]>({ queryKey: ["savings"], queryFn: api.savings.list });
+  const { data: settings } = useQuery<Settings | null>({ queryKey: ["settings"], queryFn: api.settings.get });
 
-  const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-
-  const total = (savings ?? []).reduce((s, r) => s + Number(r.amount), 0);
-  const goal = Number(settings?.savings_goal ?? 10000);
+  const goal = settings?.savings_goal ?? 10000;
+  const motoSplit = settings?.moto_split ?? 60;
+  const total = savings.reduce((s, x) => s + Number(x.amount), 0);
   const pct = Math.min(100, Math.round((total / goal) * 100));
-  const split = settings?.moto_split ?? 50;
-  const motoAmount = (total * split) / 100;
-  const investAmount = total - motoAmount;
+  const moto = total * (motoSplit / 100);
+  const inv = total - moto;
+
+  const [amt, setAmt] = useState(""); const [note, setNote] = useState("");
+
+  const wrap = async (fn: () => Promise<unknown>, msg: string) => {
+    try { await fn(); qc.invalidateQueries({ queryKey: ["savings"] }); toast.success(msg); }
+    catch (e) { toast.error((e as Error).message); }
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Risparmi</h2>
-          <p className="text-sm text-muted-foreground">Road to {fmtEur(goal)}</p>
-        </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" />Versa</Button></DialogTrigger>
-          <DialogContent><DialogHeader><DialogTitle>Nuovo versamento</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <Input type="number" placeholder="Importo €" value={amount} onChange={(e) => setAmount(e.target.value)} />
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-              <Input placeholder="Nota (opzionale)" value={note} onChange={(e) => setNote(e.target.value)} />
-              <Button className="w-full" disabled={!amount} onClick={() => {
-                create.mutate({ amount: Number(amount), date, note: note || null });
-                setAmount(""); setNote(""); setOpen(false);
-              }}>Aggiungi</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+    <div>
+      <Sec title={`Road to ${fmtEur(goal)}`}>
+        <Card>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: P.navy }}>{fmtEur(total)}</div>
+            <div style={{ fontSize: 12, color: P.slate, fontWeight: 700 }}>{pct}%</div>
+          </div>
+          <div style={{ height: 12, background: P.border, borderRadius: 999, overflow: "hidden" }}>
+            <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, ${P.accent}, ${P.purple})`, transition: "width 0.4s" }} />
+          </div>
+          {settings?.savings_deadline && (
+            <div style={{ fontSize: 11, color: P.slateL, marginTop: 8 }}>Deadline: {new Date(settings.savings_deadline).toLocaleDateString("it-IT")}</div>
+          )}
+        </Card>
+      </Sec>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
+        <Card style={{ borderTop: `3px solid ${P.amber}` }}>
+          <div style={{ fontSize: 10, textTransform: "uppercase", color: P.slateL, fontWeight: 700 }}>Moto · {motoSplit}%</div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: P.amber, marginTop: 4 }}>{fmtEur(moto)}</div>
+        </Card>
+        <Card style={{ borderTop: `3px solid ${P.accent}` }}>
+          <div style={{ fontSize: 10, textTransform: "uppercase", color: P.slateL, fontWeight: 700 }}>Investimento · {100 - motoSplit}%</div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: P.accent, marginTop: 4 }}>{fmtEur(inv)}</div>
+        </Card>
       </div>
 
-      <Card>
-        <CardContent className="p-5">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-primary/10 p-3"><PiggyBank className="h-6 w-6 text-primary" /></div>
-            <div className="flex-1">
-              <p className="text-3xl font-bold">{fmtEur(total)}</p>
-              <p className="text-sm text-muted-foreground">{pct}% dell'obiettivo</p>
-            </div>
+      <Sec title="Aggiungi versamento">
+        <Card>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Field placeholder="Importo €" type="number" value={amt} onChange={(e) => setAmt(e.target.value)} />
+            <Field placeholder="Nota (opzionale)" value={note} onChange={(e) => setNote(e.target.value)} />
+            <Btn disabled={!amt} onClick={async () => {
+              await wrap(() => api.savings.create({ amount: Number(amt), note: note || null, date: new Date().toISOString().slice(0, 10) }), "Aggiunto");
+              setAmt(""); setNote("");
+            }}>Versa</Btn>
           </div>
-          <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-secondary">
-            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-          </div>
-        </CardContent>
-      </Card>
+        </Card>
+      </Sec>
 
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          <p className="text-sm font-medium">Ripartizione: Moto {split}% · Investimento {100 - split}%</p>
-          <Slider value={[split]} onValueChange={(v) => updateSettings.mutate({ moto_split: v[0] })} min={0} max={100} step={5} />
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <div className="rounded-lg bg-accent p-3">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground"><Bike className="h-3 w-3" /> Moto</div>
-              <p className="text-lg font-semibold">{fmtEur(motoAmount)}</p>
-            </div>
-            <div className="rounded-lg bg-accent p-3">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground"><TrendingUp className="h-3 w-3" /> Investimento</div>
-              <p className="text-lg font-semibold">{fmtEur(investAmount)}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div>
-        <h3 className="text-sm font-medium text-muted-foreground mb-2">Storico versamenti</h3>
-        <div className="space-y-2">
-          {(savings ?? []).map((r) => (
-            <Card key={r.id}><CardContent className="p-3 flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{r.note ?? "Versamento"}</p>
-                <p className="text-xs text-muted-foreground">{fmtDate(r.date)}</p>
+      <Sec title="Storico">
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {savings.map((s) => (
+            <Card key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: P.navy }}>{s.note || "Versamento"}</div>
+                <div style={{ fontSize: 11, color: P.slateL }}>{new Date(s.date).toLocaleDateString("it-IT")}</div>
               </div>
-              <p className="text-sm font-semibold text-primary">+{fmtEur(Number(r.amount))}</p>
-              <Button variant="ghost" size="icon" onClick={() => remove.mutate(r.id)}><Trash2 className="h-4 w-4" /></Button>
-            </CardContent></Card>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: P.accent }}>+{fmtEur(Number(s.amount))}</div>
+                <button onClick={() => wrap(() => api.savings.remove(s.id), "Eliminato")} style={{ background: "transparent", border: 0, color: P.red, cursor: "pointer" }}>×</button>
+              </div>
+            </Card>
           ))}
         </div>
-      </div>
+      </Sec>
     </div>
   );
 }

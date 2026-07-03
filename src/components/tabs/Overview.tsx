@@ -1,77 +1,79 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { fmtEur } from "@/lib/db";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/db";
-import { TrendingUp, TrendingDown, PiggyBank, Clock, Zap, Repeat } from "lucide-react";
+import { api, fmtEur, type Income, type Project, type Saving, type Todo, type Update, type Settings } from "@/lib/db";
+import { P } from "@/lib/theme";
+import { Sec } from "@/components/ui/Sec";
 
-const now = new Date();
-const currentMonth = now.getMonth();
-const currentYear = now.getFullYear();
-
-function Kpi({ label, value, icon: Icon, tone = "default" }: { label: string; value: string; icon: React.ComponentType<{ className?: string }>; tone?: "default" | "good" | "bad" }) {
-  const toneCls = tone === "good" ? "text-success" : tone === "bad" ? "text-destructive" : "text-primary";
+function Kpi({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <Icon className={`h-4 w-4 ${toneCls}`} />
-        </div>
-        <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
-      </CardContent>
-    </Card>
+    <div style={{ background: "#fff", border: `1px solid ${P.border}`, borderTop: `3px solid ${color}`, borderRadius: 12, padding: "14px 16px" }}>
+      <div style={{ fontSize: 10, textTransform: "uppercase", color: P.slateL, fontWeight: 700, letterSpacing: "0.05em" }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 900, color, marginTop: 4 }}>{value}</div>
+      {sub && <div style={{ fontSize: 10, color: P.slateL, marginTop: 2 }}>{sub}</div>}
+    </div>
   );
 }
 
 export default function Overview() {
-  const { data: incomes = [] } = useQuery({ queryKey: ["incomes"], queryFn: api.incomes.list });
-  const { data: costs = [] } = useQuery({ queryKey: ["costs"], queryFn: api.costs.list });
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: api.projects.list });
-  const { data: managements = [] } = useQuery({ queryKey: ["managements"], queryFn: api.managements.list });
-  const { data: savings = [] } = useQuery({ queryKey: ["savings"], queryFn: api.savings.list });
-  const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: api.settings.get });
+  const { data: incomes = [] } = useQuery<Income[]>({ queryKey: ["incomes"], queryFn: api.incomes.list });
+  const { data: projects = [] } = useQuery<Project[]>({ queryKey: ["projects"], queryFn: api.projects.list });
+  const { data: savings = [] } = useQuery<Saving[]>({ queryKey: ["savings"], queryFn: api.savings.list });
+  const { data: todos = [] } = useQuery<Todo[]>({ queryKey: ["todos"], queryFn: api.todos.list });
+  const { data: updates = [] } = useQuery<Update[]>({ queryKey: ["updates"], queryFn: api.updates.list });
+  const { data: settings } = useQuery<Settings | null>({ queryKey: ["settings"], queryFn: api.settings.get });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: api.clients.list });
 
-  const totalIncome = (incomes ?? []).reduce((s, i) => s + Number(i.amount), 0);
-  const totalCost = (costs ?? []).reduce((s, c) => s + Number(c.amount), 0);
-  const pipelineOneShot = (projects ?? []).filter((p) => p.stage !== "vinto" && p.stage !== "perso").reduce((s, p) => s + Number(p.amount), 0);
-  const monthlyRecurring = (managements ?? []).filter((m) => m.active).reduce((s, m) => s + Number(m.monthly_amount), 0);
-  const toCollect = pipelineOneShot;
-  const savingsTotal = (savings ?? []).reduce((s, r) => s + Number(r.amount), 0);
-  const monthIncome = (incomes ?? []).filter((i) => { const d = new Date(i.date); return d.getMonth() === currentMonth && d.getFullYear() === currentYear; }).reduce((s, i) => s + Number(i.amount), 0);
+  const accent = settings?.primary_color ?? P.accent;
+  const goal = settings?.savings_goal ?? 10000;
 
-  const goal = Number(settings?.savings_goal ?? 10000);
-  const pct = Math.min(100, Math.round((savingsTotal / goal) * 100));
+  const incassato = incomes.filter((i) => i.status === "incassato").reduce((s, i) => s + Number(i.amount), 0);
+  const daIncassare = incomes.filter((i) => i.status === "da_incassare").reduce((s, i) => s + Number(i.amount), 0);
+  const pipUnaTantum = projects.reduce((s, p) => s + (p.services_one_off || []).reduce((a, x) => a + Number(x.i), 0), 0);
+  const pipMensile = projects.reduce((s, p) => s + (p.services_monthly || []).reduce((a, x) => a + Number(x.i), 0), 0);
+  const totRisparmi = savings.reduce((s, x) => s + Number(x.amount), 0);
+  const acquisiti = clients.filter((c) => c.status === "acquisito").length;
+  const lavorati = clients.filter((c) => c.status !== "da_contattare").length;
+  const conv = lavorati ? Math.round((acquisiti / lavorati) * 100) : 0;
+
+  const urgenti = todos.filter((t) => !t.done && t.priority === "alta");
+  const recenti = updates.slice(0, 5);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold">Panoramica</h2>
-        <p className="text-sm text-muted-foreground">Snapshot rapido dell'agenzia</p>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Kpi label="Incassato totale" value={fmtEur(totalIncome)} icon={TrendingUp} tone="good" />
-        <Kpi label="Da incassare" value={fmtEur(toCollect)} icon={Clock} />
-        <Kpi label="Pipeline una tantum" value={fmtEur(pipelineOneShot)} icon={Zap} />
-        <Kpi label="MRR (gestioni)" value={fmtEur(monthlyRecurring)} icon={Repeat} />
-        <Kpi label="Costi totali" value={fmtEur(totalCost)} icon={TrendingDown} tone="bad" />
-        <Kpi label="Questo mese" value={fmtEur(monthIncome)} icon={TrendingUp} />
-      </div>
+    <div>
+      <Sec title="KPI">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(145px,1fr))", gap: 10 }}>
+          <Kpi label="Incassato" value={fmtEur(incassato)} sub="aggiornato" color={P.green} />
+          <Kpi label="Da incassare" value={fmtEur(daIncassare)} sub="confermati" color={P.amber} />
+          <Kpi label="Pipeline una tantum" value={fmtEur(pipUnaTantum)} sub="se chiudi tutti" color={P.blue} />
+          <Kpi label="Pipeline mensile" value={`${fmtEur(pipMensile)}/mese`} sub="se chiudi tutti" color={P.purple} />
+          <Kpi label="Risparmi" value={fmtEur(totRisparmi)} sub={`obiettivo ${fmtEur(goal)}`} color={accent} />
+          <Kpi label="Conversione" value={`${conv}%`} sub="su lavorati" color={P.blue} />
+        </div>
+      </Sec>
 
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Road to {fmtEur(goal)}</p>
-            <p className="text-sm text-primary font-semibold">{pct}%</p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Sec title="Azioni urgenti" accent={P.red}>
+          <div style={{ background: "#fff", border: `1px solid ${P.border}`, borderRadius: 12, padding: 12 }}>
+            {urgenti.length === 0 && <div style={{ fontSize: 12, color: P.slateL }}>Nessuna urgenza.</div>}
+            {urgenti.map((t) => (
+              <div key={t.id} style={{ fontSize: 12, padding: "6px 0", borderBottom: `1px solid ${P.border}` }}>
+                <div style={{ color: P.navy, fontWeight: 600 }}>{t.title}</div>
+                {t.date_note && <div style={{ color: P.slateL, fontSize: 10, marginTop: 2 }}>{t.date_note}</div>}
+              </div>
+            ))}
           </div>
-          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-secondary">
-            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+        </Sec>
+        <Sec title="Aggiornamenti recenti" accent={P.slateL}>
+          <div style={{ background: "#fff", border: `1px solid ${P.border}`, borderRadius: 12, padding: 12 }}>
+            {recenti.length === 0 && <div style={{ fontSize: 12, color: P.slateL }}>Nessun aggiornamento.</div>}
+            {recenti.map((u) => (
+              <div key={u.id} style={{ fontSize: 12, padding: "6px 0", borderBottom: `1px solid ${P.border}` }}>
+                <div style={{ color: P.slateL, fontSize: 10 }}>{new Date(u.date).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}</div>
+                <div style={{ color: P.navy }}>{u.event}</div>
+              </div>
+            ))}
           </div>
-          <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><PiggyBank className="h-3 w-3" /> {fmtEur(savingsTotal)}</span>
-            <span>Obiettivo: {fmtEur(goal)}</span>
-          </div>
-        </CardContent>
-      </Card>
+        </Sec>
+      </div>
     </div>
   );
 }

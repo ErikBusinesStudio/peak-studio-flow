@@ -1,105 +1,123 @@
-import { useQuery } from "@tanstack/react-query";
-import { api, fmtEur, fmtDate, type ProjectStage } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2 } from "lucide-react";
-import { useMutate } from "@/lib/hooks";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, fmtEur, type Project, type ServiceItem } from "@/lib/db";
+import { P } from "@/lib/theme";
+import { Sec, Btn, Field, Area, Modal, Card } from "@/components/ui/Sec";
 import { useState } from "react";
-
-const STAGES: { id: ProjectStage; label: string; color: string }[] = [
-  { id: "lead", label: "Lead", color: "bg-slate-500" },
-  { id: "proposta", label: "Proposta", color: "bg-blue-500" },
-  { id: "trattativa", label: "Trattativa", color: "bg-amber-500" },
-  { id: "vinto", label: "Vinto", color: "bg-emerald-500" },
-  { id: "perso", label: "Perso", color: "bg-rose-500" },
-];
+import { toast } from "sonner";
 
 export default function Pipeline() {
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: api.projects.list });
-  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: api.clients.list });
-  const create = useMutate(["projects"], (v) => api.projects.create(v as never) as unknown as Promise<unknown>, "Progetto aggiunto");
-  const update = useMutate(["projects"], ({ id, ...v }: { id: string } & Record<string, unknown>) => api.projects.update(id, v as never) as unknown as Promise<unknown>);
-  const remove = useMutate(["projects"], (id) => api.projects.remove(id as string) as unknown as Promise<unknown>);
-
+  const qc = useQueryClient();
+  const { data: projects = [] } = useQuery<Project[]>({ queryKey: ["projects"], queryFn: api.projects.list });
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
-  const [stage, setStage] = useState<ProjectStage>("lead");
-  const [clientId, setClientId] = useState<string | null>(null);
-  const [dueDate, setDueDate] = useState("");
+  const [color, setColor] = useState("#3b82f6");
+  const [notes, setNotes] = useState("");
 
-  const total = (projects ?? []).filter((p) => p.stage !== "perso" && p.stage !== "vinto").reduce((s, p) => s + Number(p.amount), 0);
+  const totOnce = projects.reduce((s, p) => s + p.services_one_off.reduce((a, x) => a + Number(x.i), 0), 0);
+  const totMon = projects.reduce((s, p) => s + p.services_monthly.reduce((a, x) => a + Number(x.i), 0), 0);
+
+  const wrap = async (fn: () => Promise<unknown>, msg: string) => {
+    try { await fn(); qc.invalidateQueries({ queryKey: ["projects"] }); toast.success(msg); }
+    catch (e) { toast.error((e as Error).message); }
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Pipeline</h2>
-          <p className="text-sm text-muted-foreground">Progetti una tantum · {fmtEur(total)} attivi</p>
+    <div>
+      <Sec title={`Pipeline · ${fmtEur(totOnce)} una tantum · ${fmtEur(totMon)}/mese`}
+        action={<Btn onClick={() => setOpen(true)}>+ Nuovo</Btn>}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {projects.map((p) => (
+            <ProjectCard key={p.id} project={p} onUpdate={(row) => wrap(() => api.projects.update(p.id, row), "Aggiornato")} onRemove={() => confirm("Eliminare?") && wrap(() => api.projects.remove(p.id), "Eliminato")} />
+          ))}
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" />Nuovo</Button></DialogTrigger>
-          <DialogContent><DialogHeader><DialogTitle>Nuovo progetto</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <Input placeholder="Nome progetto" value={name} onChange={(e) => setName(e.target.value)} />
-              <Input type="number" placeholder="Importo €" value={amount} onChange={(e) => setAmount(e.target.value)} />
-              <Select value={stage} onValueChange={(v) => setStage(v as ProjectStage)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{STAGES.map((s) => <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={clientId ?? "none"} onValueChange={(v) => setClientId(v === "none" ? null : v)}>
-                <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nessuno</SelectItem>
-                  {(clients ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-              <Button className="w-full" disabled={!name || !amount} onClick={() => {
-                create.mutate({ name, amount: Number(amount), stage, client_id: clientId, due_date: dueDate || null });
-                setName(""); setAmount(""); setStage("lead"); setClientId(null); setDueDate(""); setOpen(false);
-              }}>Aggiungi</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+      </Sec>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="Nuovo progetto pipeline">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <Field placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} />
+          <label style={{ fontSize: 11, color: P.slate }}>Colore</label>
+          <input type="color" value={color} onChange={(e) => setColor(e.target.value)} style={{ width: 60, height: 32 }} />
+          <Area placeholder="Note" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          <Btn disabled={!name} onClick={async () => {
+            await wrap(() => api.projects.create({ name, color, notes: notes || null, services_one_off: [], services_monthly: [] }), "Aggiunto");
+            setName(""); setNotes(""); setOpen(false);
+          }}>Crea</Btn>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function ProjectCard({ project, onUpdate, onRemove }: { project: Project; onUpdate: (r: Partial<Project>) => void; onRemove: () => void }) {
+  const [openOnce, setOpenOnce] = useState(false);
+  const [openMon, setOpenMon] = useState(false);
+  const [v, setV] = useState(""); const [i, setI] = useState("");
+  const c = project.color || P.blue;
+
+  const totOnce = project.services_one_off.reduce((s, x) => s + Number(x.i), 0);
+  const totMon = project.services_monthly.reduce((s, x) => s + Number(x.i), 0);
+
+  const addService = (kind: "one" | "mon") => {
+    if (!v || !i) return;
+    const key = kind === "one" ? "services_one_off" : "services_monthly";
+    const arr: ServiceItem[] = [...project[key], { v, i: Number(i) }];
+    onUpdate({ [key]: arr } as Partial<Project>);
+    setV(""); setI("");
+    if (kind === "one") setOpenOnce(false); else setOpenMon(false);
+  };
+  const removeService = (kind: "one" | "mon", idx: number) => {
+    const key = kind === "one" ? "services_one_off" : "services_monthly";
+    onUpdate({ [key]: project[key].filter((_, k) => k !== idx) } as Partial<Project>);
+  };
+
+  return (
+    <Card style={{ borderLeft: `4px solid ${c}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <div style={{ fontWeight: 800, color: P.navy, fontSize: 14 }}>{project.name}</div>
+        <button onClick={onRemove} style={{ fontSize: 11, color: P.red, background: "transparent", border: 0, cursor: "pointer" }}>Elimina</button>
+      </div>
+      {project.notes && <div style={{ fontSize: 11, color: P.slate, marginBottom: 8 }}>{project.notes}</div>}
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <ServiceList title="Una tantum" total={totOnce} color={P.blue} items={project.services_one_off} onRemove={(idx) => removeService("one", idx)} onAdd={() => setOpenOnce(true)} />
+        <ServiceList title="Mensile" total={totMon} color={P.purple} items={project.services_monthly} onRemove={(idx) => removeService("mon", idx)} suffix="/m" onAdd={() => setOpenMon(true)} />
       </div>
 
-      <div className="space-y-2">
-        {(projects ?? []).map((p) => {
-          const s = STAGES.find((x) => x.id === p.stage)!;
-          const client = (clients ?? []).find((c) => c.id === p.client_id);
-          return (
-            <Card key={p.id}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{p.name}</p>
-                    {client && <p className="text-xs text-muted-foreground">{client.name}</p>}
-                    <div className="mt-2 flex items-center gap-2 flex-wrap">
-                      <Badge className={`${s.color} text-white hover:${s.color}`}>{s.label}</Badge>
-                      <span className="text-sm font-semibold text-primary">{fmtEur(Number(p.amount))}</span>
-                      {p.due_date && <span className="text-xs text-muted-foreground">· {fmtDate(p.due_date)}</span>}
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => remove.mutate(p.id)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-                <div className="mt-3 flex gap-1 flex-wrap">
-                  {STAGES.map((st) => (
-                    <button key={st.id} onClick={() => update.mutate({ id: p.id, stage: st.id })}
-                      className={`text-[10px] px-2 py-1 rounded-full border ${p.stage === st.id ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"}`}>
-                      {st.label}
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      <Modal open={openOnce} onClose={() => setOpenOnce(false)} title="Aggiungi servizio una tantum">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <Field placeholder="Descrizione" value={v} onChange={(e) => setV(e.target.value)} />
+          <Field placeholder="Importo €" type="number" value={i} onChange={(e) => setI(e.target.value)} />
+          <Btn onClick={() => addService("one")}>Aggiungi</Btn>
+        </div>
+      </Modal>
+      <Modal open={openMon} onClose={() => setOpenMon(false)} title="Aggiungi servizio mensile">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <Field placeholder="Descrizione" value={v} onChange={(e) => setV(e.target.value)} />
+          <Field placeholder="€/mese" type="number" value={i} onChange={(e) => setI(e.target.value)} />
+          <Btn onClick={() => addService("mon")}>Aggiungi</Btn>
+        </div>
+      </Modal>
+    </Card>
+  );
+}
+
+function ServiceList({ title, total, color, items, suffix = "", onRemove, onAdd }: { title: string; total: number; color: string; items: ServiceItem[]; suffix?: string; onRemove: (i: number) => void; onAdd: () => void }) {
+  return (
+    <div style={{ background: P.bg, borderRadius: 8, padding: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color }}>{title}</div>
+        <div style={{ fontSize: 12, fontWeight: 800, color }}>{fmtEur(total)}{suffix}</div>
       </div>
+      {items.map((it, idx) => (
+        <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, padding: "3px 0", color: P.slate }}>
+          <span>{it.v}</span>
+          <span style={{ display: "flex", gap: 6 }}>
+            <span style={{ fontWeight: 700, color: P.navy }}>{it.i}€{suffix}</span>
+            <button onClick={() => onRemove(idx)} style={{ background: "transparent", border: 0, color: P.red, cursor: "pointer", fontSize: 11 }}>×</button>
+          </span>
+        </div>
+      ))}
+      <button onClick={onAdd} style={{ marginTop: 6, fontSize: 11, color, background: "transparent", border: `1px dashed ${color}`, borderRadius: 6, padding: "4px 8px", width: "100%", cursor: "pointer" }}>+ aggiungi</button>
     </div>
   );
 }

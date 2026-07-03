@@ -1,78 +1,60 @@
-import { useQuery } from "@tanstack/react-query";
-import { api, type Priority } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
-import { useMutate } from "@/lib/hooks";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, type Todo, type Priority } from "@/lib/db";
+import { P, PRIO_COLOR } from "@/lib/theme";
+import { Sec, Btn, Field, Card } from "@/components/ui/Sec";
 import { useState } from "react";
+import { toast } from "sonner";
 
-const PRIORITY_COLORS: Record<Priority, string> = {
-  alta: "bg-rose-500",
-  media: "bg-amber-500",
-  bassa: "bg-slate-400",
-};
+const PRIOS: Priority[] = ["alta", "media", "bassa"];
 
 export default function Todos() {
-  const { data: todos = [] } = useQuery({ queryKey: ["todos"], queryFn: api.todos.list });
-  const create = useMutate(["todos"], (v) => api.todos.create(v as never) as unknown as Promise<unknown>, "Task aggiunto");
-  const update = useMutate(["todos"], ({ id, ...v }: { id: string } & Record<string, unknown>) => api.todos.update(id, v as never) as unknown as Promise<unknown>);
-  const remove = useMutate(["todos"], (id) => api.todos.remove(id as string) as unknown as Promise<unknown>);
+  const qc = useQueryClient();
+  const { data: todos = [] } = useQuery<Todo[]>({ queryKey: ["todos"], queryFn: api.todos.list });
+  const [title, setTitle] = useState(""); const [prio, setPrio] = useState<Priority>("media"); const [note, setNote] = useState("");
 
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState<Priority>("media");
+  const wrap = async (fn: () => Promise<unknown>, msg: string) => {
+    try { await fn(); qc.invalidateQueries({ queryKey: ["todos"] }); toast.success(msg); }
+    catch (e) { toast.error((e as Error).message); }
+  };
 
-  const sorted = [...(todos ?? [])].sort((a, b) => {
-    if (a.done !== b.done) return a.done ? 1 : -1;
-    const order = { alta: 0, media: 1, bassa: 2 };
-    return order[a.priority] - order[b.priority];
-  });
+  const grouped = (p: Priority) => todos.filter((t) => t.priority === p);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">To-Do</h2>
-          <p className="text-sm text-muted-foreground">{(todos ?? []).filter((t) => !t.done).length} attivi</p>
-        </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" />Nuovo</Button></DialogTrigger>
-          <DialogContent><DialogHeader><DialogTitle>Nuovo task</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <Input placeholder="Cosa devi fare?" value={title} onChange={(e) => setTitle(e.target.value)} />
-              <Select value={priority} onValueChange={(v) => setPriority(v as Priority)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="media">Media</SelectItem>
-                  <SelectItem value="bassa">Bassa</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button className="w-full" disabled={!title} onClick={() => {
-                create.mutate({ title, priority, done: false });
-                setTitle(""); setPriority("media"); setOpen(false);
-              }}>Aggiungi</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+    <div>
+      <Sec title="Aggiungi task">
+        <Card>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Field placeholder="Titolo" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Field placeholder="Data / nota (opzionale)" value={note} onChange={(e) => setNote(e.target.value)} />
+            <select value={prio} onChange={(e) => setPrio(e.target.value as Priority)}
+              style={{ padding: "8px 12px", borderRadius: 8, border: `1px solid ${P.border}`, fontSize: 13 }}>
+              {PRIOS.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <Btn disabled={!title} onClick={async () => {
+              await wrap(() => api.todos.create({ title, priority: prio, date_note: note || null, done: false }), "Aggiunta");
+              setTitle(""); setNote(""); setPrio("media");
+            }}>Aggiungi</Btn>
+          </div>
+        </Card>
+      </Sec>
 
-      <div className="space-y-2">
-        {sorted.map((t) => (
-          <Card key={t.id} className={t.done ? "opacity-50" : ""}>
-            <CardContent className="p-3 flex items-center gap-3">
-              <Checkbox checked={t.done} onCheckedChange={(v) => update.mutate({ id: t.id, done: !!v })} />
-              <span className={`h-2 w-2 rounded-full ${PRIORITY_COLORS[t.priority]}`} />
-              <p className={`flex-1 text-sm ${t.done ? "line-through text-muted-foreground" : ""}`}>{t.title}</p>
-              <Button variant="ghost" size="icon" onClick={() => remove.mutate(t.id)}><Trash2 className="h-4 w-4" /></Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {PRIOS.map((p) => (
+        <Sec key={p} title={`Priorità ${p}`} accent={PRIO_COLOR[p]}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {grouped(p).length === 0 && <div style={{ fontSize: 12, color: P.slateL }}>Nessuna.</div>}
+            {grouped(p).map((t) => (
+              <Card key={t.id} style={{ display: "flex", alignItems: "center", gap: 10, borderLeft: `3px solid ${PRIO_COLOR[p]}`, padding: 12, opacity: t.done ? 0.5 : 1 }}>
+                <input type="checkbox" checked={t.done} onChange={() => wrap(() => api.todos.update(t.id, { done: !t.done }), "Aggiornata")} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: P.navy, textDecoration: t.done ? "line-through" : "none" }}>{t.title}</div>
+                  {t.date_note && <div style={{ fontSize: 11, color: P.slateL, marginTop: 2 }}>{t.date_note}</div>}
+                </div>
+                <button onClick={() => wrap(() => api.todos.remove(t.id), "Eliminata")} style={{ background: "transparent", border: 0, color: P.red, cursor: "pointer" }}>×</button>
+              </Card>
+            ))}
+          </div>
+        </Sec>
+      ))}
     </div>
   );
 }
