@@ -43,6 +43,10 @@ const first = async <T>(p: PromiseLike<{ data: unknown; error: unknown }>): Prom
   if (error) throw error;
   return (data ?? []) as T[];
 };
+const run = async (p: PromiseLike<{ error: unknown }>): Promise<void> => {
+  const { error } = await p;
+  if (error) throw error;
+};
 
 export const api = {
   clients: {
