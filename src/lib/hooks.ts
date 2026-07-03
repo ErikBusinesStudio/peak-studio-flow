@@ -13,9 +13,9 @@ export function useList<K extends keyof typeof api>(key: K) {
   });
 }
 
-export function useMutate(keys: string[], fn: (v: unknown) => Promise<unknown>, msg?: string) {
+export function useMutate<TVars = unknown>(keys: string[], fn: (v: TVars) => Promise<unknown>, msg?: string) {
   const qc = useQueryClient();
-  return useMutation({
+  return useMutation<unknown, Error, TVars>({
     mutationFn: fn,
     onSuccess: () => {
       keys.forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
