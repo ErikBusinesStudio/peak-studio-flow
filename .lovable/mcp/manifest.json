@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "basecamp-mcp",
+      "version": "0.1.0",
+      "title": "Basecamp (Peak Studio)"
+    },
+    "tools": [
+      {
+        "name": "list_clients",
+        "title": "List clients",
+        "description": "List all clients in Basecamp with status, zone, contract value, and amount collected.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_incomes",
+        "title": "List incomes",
+        "description": "List all income entries (collected and pending) with amounts and status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_costs",
+        "title": "List costs",
+        "description": "List all recorded costs / expenses.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_todos",
+        "title": "List to-dos",
+        "description": "List all to-do items with priority and completion status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_events",
+        "title": "List calendar events",
+        "description": "List scheduled calendar events with date, time, and notes.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_savings",
+        "title": "List savings deposits",
+        "description": "List all savings deposits with amount, note, and date.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_kpis",
+        "title": "Get KPIs",
+        "description": "Compute headline KPIs: total collected, pending to collect, total costs, net, savings total.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_todo",
+        "title": "Create to-do",
+        "description": "Add a new to-do item with a title and priority.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "To-do title"
+            },
+            "priority": {
+              "type": "string",
+              "enum": [
+                "alta",
+                "media",
+                "bassa"
+              ],
+              "description": "Priority level"
+            },
+            "date_note": {
+              "description": "Optional date/time note",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "priority"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_event",
+        "title": "Create calendar event",
+        "description": "Add a new calendar event.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "date": {
+              "type": "string",
+              "description": "Date in YYYY-MM-DD"
+            },
+            "time": {
+              "description": "Time in HH:MM",
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "date"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_income",
+        "title": "Record income",
+        "description": "Record an income entry (collected or pending).",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "minLength": 1
+            },
+            "amount": {
+              "type": "number",
+              "description": "Amount in EUR"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "incassato",
+                "da_incassare"
+              ]
+            },
+            "category": {
+              "type": "string"
+            },
+            "date": {
+              "description": "YYYY-MM-DD",
+              "type": "string"
+            },
+            "date_label": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "amount",
+            "status"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_client",
+        "title": "Create client",
+        "description": "Add a new client to Basecamp.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "acquisito",
+                "in_attesa",
+                "da_contattare",
+                "rifiutato"
+              ]
+            },
+            "zona": {
+              "type": "string"
+            },
+            "value": {
+              "description": "Contract value in EUR",
+              "type": "number"
+            },
+            "phone": {
+              "type": "string"
+            },
+            "contact": {
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "status"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
