@@ -31,7 +31,7 @@ export default function Diary() {
   const [skipped, setSkipped] = useState<Record<number, boolean>>({});
   const [confirmed, setConfirmed] = useState<Record<number, boolean>>({});
 
-  const { data: entries } = useList("diary");
+  const { data: entries } = useList("diary") as { data: DiaryEntry[] | undefined };
   const analyze = useServerFn(analyzeDiary);
   const qc = useQueryClient();
 
