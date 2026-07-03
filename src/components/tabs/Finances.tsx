@@ -100,9 +100,9 @@ export default function Finances() {
 
 function MiniKpi({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div style={{ background: "#fff", border: `1px solid ${P.border}`, borderTop: `3px solid ${color}`, borderRadius: 12, padding: "12px 14px" }}>
-      <div style={{ fontSize: 10, textTransform: "uppercase", color: P.slateL, fontWeight: 700 }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 900, color, marginTop: 2 }}>{value}</div>
+    <div style={{ background: P.card, border: `1px solid ${P.border}`, borderTop: `3px solid ${color}`, borderRadius: 12, padding: "12px 14px" }}>
+      <div style={{ fontSize: 10, textTransform: "uppercase", color: P.slateL, fontWeight: 700, letterSpacing: "0.06em" }}>{label}</div>
+      <div className="display-font" style={{ fontSize: 22, fontWeight: 400, color, marginTop: 4, letterSpacing: "0.02em" }}>{value}</div>
     </div>
   );
 }
