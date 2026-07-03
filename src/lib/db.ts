@@ -63,6 +63,11 @@ export const api = {
     create: (row: Partial<EventItem>) => supabase.from("events").insert(row as never),
     remove: (id: string) => supabase.from("events").delete().eq("id", id),
   },
+  diary: {
+    list: async () => (await supabase.from("diary_entries").select("*").order("date", { ascending: false }).order("created_at", { ascending: false })).data as DiaryEntry[] | null,
+    create: async (row: Partial<DiaryEntry>) => (await supabase.from("diary_entries").insert(row as never).select().single()).data as DiaryEntry | null,
+    remove: (id: string) => supabase.from("diary_entries").delete().eq("id", id),
+  },
   settings: {
     get: async () => (await supabase.from("settings").select("*").eq("id", 1).maybeSingle()).data as Settings | null,
     update: (row: Partial<Settings>) => supabase.from("settings").update(row as never).eq("id", 1),
