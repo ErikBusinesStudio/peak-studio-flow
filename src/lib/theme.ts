@@ -1,27 +1,31 @@
 export const P = {
-  navy: "#0a0f1e",
-  navyMid: "#111827",
-  navyLt: "#1e293b",
-  blue: "#3b82f6",
-  blueLt: "#60a5fa",
+  // Dark burgundy palette matched to peakstudio.it
+  bg: "#1a0810",           // page background — deep wine
+  card: "#25101a",         // surface / cards
+  cardAlt: "#2f1522",      // elevated / hover
+  navy: "#f5e6d3",         // primary text (cream) — token name kept for compatibility
+  navyMid: "#14060c",      // header/tabs bg (deepest)
+  navyLt: "#3a1621",       // divider on dark
+  border: "#3a1621",       // borders on dark surfaces
+  slate: "#c9a89b",        // secondary text
+  slateL: "#8a6b62",       // muted text
+  white: "#ffffff",
+  // Accents (mountain-inspired warm reds)
+  accent: "#e11d48",       // primary rose/red
+  rose: "#f43f5e",
+  red: "#ef4444",
   amber: "#f59e0b",
   green: "#22c55e",
-  red: "#ef4444",
+  blue: "#60a5fa",
+  blueLt: "#93c5fd",
   purple: "#a855f7",
-  slate: "#64748b",
-  slateL: "#94a3b8",
-  border: "#e2e8f0",
-  bg: "#f8fafc",
-  white: "#ffffff",
-  rose: "#f43f5e",
-  accent: "#6366f1",
 } as const;
 
 export const STATO_CFG: Record<string, { label: string; color: string; dot: string }> = {
-  acquisito: { label: "Acquisito", color: "#16a34a", dot: "#22c55e" },
-  in_attesa: { label: "In attesa", color: "#d97706", dot: "#f59e0b" },
-  da_contattare: { label: "Da contattare", color: "#2563eb", dot: "#3b82f6" },
-  rifiutato: { label: "Rifiutato", color: "#dc2626", dot: "#ef4444" },
+  acquisito: { label: "Acquisito", color: "#22c55e", dot: "#22c55e" },
+  in_attesa: { label: "In attesa", color: "#f59e0b", dot: "#f59e0b" },
+  da_contattare: { label: "Da contattare", color: "#60a5fa", dot: "#60a5fa" },
+  rifiutato: { label: "Rifiutato", color: "#ef4444", dot: "#ef4444" },
 };
 export const STATO_ORDER = ["acquisito", "in_attesa", "da_contattare", "rifiutato"] as const;
 

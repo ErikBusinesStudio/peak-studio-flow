@@ -77,12 +77,12 @@ export default function Clients() {
                     <div style={{ marginTop: 8, display: "flex", gap: 4, flexWrap: "wrap" }}>
                       {STATUS_LIST.map((st) => (
                         <button key={st} onClick={() => wrap(() => api.clients.update(c.id, { status: st }), "Aggiornato")}
-                          style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, border: `1px solid ${c.status === st ? STATO_CFG[st].dot : P.border}`, background: c.status === st ? STATO_CFG[st].dot : "#fff", color: c.status === st ? "#fff" : P.slate, cursor: "pointer", fontWeight: 600 }}>
+                          style={{ fontSize: 10, padding: "3px 8px", borderRadius: 999, border: `1px solid ${c.status === st ? STATO_CFG[st].dot : P.border}`, background: c.status === st ? STATO_CFG[st].dot : P.navyMid, color: c.status === st ? "#fff" : P.slate, cursor: "pointer", fontWeight: 600 }}>
                           {STATO_CFG[st].label}
                         </button>
                       ))}
                       <button onClick={() => confirm("Eliminare?") && wrap(() => api.clients.remove(c.id), "Eliminato")}
-                        style={{ marginLeft: "auto", fontSize: 10, padding: "3px 8px", borderRadius: 999, border: `1px solid ${P.border}`, background: "#fff", color: P.red, cursor: "pointer" }}>Elimina</button>
+                        style={{ marginLeft: "auto", fontSize: 10, padding: "3px 8px", borderRadius: 999, border: `1px solid ${P.border}`, background: P.navyMid, color: P.red, cursor: "pointer" }}>Elimina</button>
                     </div>
                   </div>
                 </div>
@@ -98,7 +98,7 @@ export default function Clients() {
           <Field placeholder="Zona" value={zona} onChange={(e) => setZona(e.target.value)} />
           <Field placeholder="Telefono" value={phone} onChange={(e) => setPhone(e.target.value)} />
           <select value={status} onChange={(e) => setStatus(e.target.value as ClientStatus)}
-            style={{ padding: "8px 12px", borderRadius: 8, border: `1px solid ${P.border}`, fontSize: 13 }}>
+            style={{ padding: "9px 12px", borderRadius: 8, border: `1px solid ${P.border}`, fontSize: 13, background: P.navyMid, color: P.navy }}>
             {STATUS_LIST.map((s) => <option key={s} value={s}>{STATO_CFG[s].label}</option>)}
           </select>
           <Area placeholder="Note" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
@@ -115,7 +115,7 @@ export default function Clients() {
 function FilterChip({ label, active, onClick, color }: { label: string; active: boolean; onClick: () => void; color?: string }) {
   return (
     <button onClick={onClick}
-      style={{ padding: "5px 12px", borderRadius: 999, fontSize: 11, fontWeight: 700, border: `1px solid ${active ? (color || P.accent) : P.border}`, background: active ? (color || P.accent) : "#fff", color: active ? "#fff" : P.slate, cursor: "pointer" }}>
+      style={{ padding: "5px 12px", borderRadius: 999, fontSize: 11, fontWeight: 700, border: `1px solid ${active ? (color || P.accent) : P.border}`, background: active ? (color || P.accent) : P.navyMid, color: active ? "#fff" : P.slate, cursor: "pointer" }}>
       {label}
     </button>
   );
