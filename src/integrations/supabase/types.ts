@@ -16,28 +16,43 @@ export type Database = {
     Tables: {
       clients: {
         Row: {
+          collected: number
           contact: string | null
           created_at: string
+          hours: Json | null
           id: string
           name: string
           notes: string | null
+          phone: string | null
           status: string
+          value: number | null
+          zona: string | null
         }
         Insert: {
+          collected?: number
           contact?: string | null
           created_at?: string
+          hours?: Json | null
           id?: string
           name: string
           notes?: string | null
+          phone?: string | null
           status: string
+          value?: number | null
+          zona?: string | null
         }
         Update: {
+          collected?: number
           contact?: string | null
           created_at?: string
+          hours?: Json | null
           id?: string
           name?: string
           notes?: string | null
+          phone?: string | null
           status?: string
+          value?: number | null
+          zona?: string | null
         }
         Relationships: []
       }
@@ -46,7 +61,8 @@ export type Database = {
           amount: number
           category: string | null
           created_at: string
-          date: string
+          date: string | null
+          date_label: string | null
           description: string
           id: string
           recurring: boolean
@@ -55,7 +71,8 @@ export type Database = {
           amount: number
           category?: string | null
           created_at?: string
-          date?: string
+          date?: string | null
+          date_label?: string | null
           description: string
           id?: string
           recurring?: boolean
@@ -64,7 +81,8 @@ export type Database = {
           amount?: number
           category?: string | null
           created_at?: string
-          date?: string
+          date?: string | null
+          date_label?: string | null
           description?: string
           id?: string
           recurring?: boolean
@@ -131,27 +149,33 @@ export type Database = {
           category: string | null
           client_id: string | null
           created_at: string
-          date: string
+          date: string | null
+          date_label: string | null
           description: string
           id: string
+          status: string
         }
         Insert: {
           amount: number
           category?: string | null
           client_id?: string | null
           created_at?: string
-          date?: string
+          date?: string | null
+          date_label?: string | null
           description: string
           id?: string
+          status?: string
         }
         Update: {
           amount?: number
           category?: string | null
           client_id?: string | null
           created_at?: string
-          date?: string
+          date?: string | null
+          date_label?: string | null
           description?: string
           id?: string
+          status?: string
         }
         Relationships: [
           {
@@ -166,30 +190,33 @@ export type Database = {
       managements: {
         Row: {
           active: boolean
+          category: string
           client_id: string | null
           created_at: string
           id: string
-          monthly_amount: number
+          monthly_amount: number | null
           name: string
           notes: string | null
           start_date: string | null
         }
         Insert: {
           active?: boolean
+          category?: string
           client_id?: string | null
           created_at?: string
           id?: string
-          monthly_amount?: number
+          monthly_amount?: number | null
           name: string
           notes?: string | null
           start_date?: string | null
         }
         Update: {
           active?: boolean
+          category?: string
           client_id?: string | null
           created_at?: string
           id?: string
-          monthly_amount?: number
+          monthly_amount?: number | null
           name?: string
           notes?: string | null
           start_date?: string | null
@@ -208,32 +235,41 @@ export type Database = {
         Row: {
           amount: number
           client_id: string | null
+          color: string | null
           created_at: string
           due_date: string | null
           id: string
           name: string
           notes: string | null
-          stage: string
+          services_monthly: Json
+          services_one_off: Json
+          stage: string | null
         }
         Insert: {
           amount?: number
           client_id?: string | null
+          color?: string | null
           created_at?: string
           due_date?: string | null
           id?: string
           name: string
           notes?: string | null
-          stage: string
+          services_monthly?: Json
+          services_one_off?: Json
+          stage?: string | null
         }
         Update: {
           amount?: number
           client_id?: string | null
+          color?: string | null
           created_at?: string
           due_date?: string | null
           id?: string
           name?: string
           notes?: string | null
-          stage?: string
+          services_monthly?: Json
+          services_one_off?: Json
+          stage?: string | null
         }
         Relationships: [
           {
@@ -299,6 +335,7 @@ export type Database = {
       todos: {
         Row: {
           created_at: string
+          date_note: string | null
           done: boolean
           id: string
           priority: string
@@ -306,6 +343,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          date_note?: string | null
           done?: boolean
           id?: string
           priority?: string
@@ -313,10 +351,35 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          date_note?: string | null
           done?: boolean
           id?: string
           priority?: string
           title?: string
+        }
+        Relationships: []
+      }
+      updates: {
+        Row: {
+          category: string
+          created_at: string
+          date: string
+          event: string
+          id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          date: string
+          event: string
+          id?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          date?: string
+          event?: string
+          id?: string
         }
         Relationships: []
       }

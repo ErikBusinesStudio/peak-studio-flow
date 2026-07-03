@@ -1,77 +1,74 @@
-import { useQuery } from "@tanstack/react-query";
-import { api, fmtEur } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2 } from "lucide-react";
-import { useMutate } from "@/lib/hooks";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, fmtEur, type Management } from "@/lib/db";
+import { P } from "@/lib/theme";
+import { Sec, Btn, Field, Area, Modal, Card } from "@/components/ui/Sec";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Managements() {
-  const { data: managements = [] } = useQuery({ queryKey: ["managements"], queryFn: api.managements.list });
-  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: api.clients.list });
-  const create = useMutate(["managements"], (v) => api.managements.create(v as never) as unknown as Promise<unknown>, "Gestione aggiunta");
-  const update = useMutate(["managements"], ({ id, ...v }: { id: string } & Record<string, unknown>) => api.managements.update(id, v as never) as unknown as Promise<unknown>);
-  const remove = useMutate(["managements"], (id) => api.managements.remove(id as string) as unknown as Promise<unknown>);
+  const qc = useQueryClient();
+  const { data: rows = [] } = useQuery<Management[]>({ queryKey: ["managements"], queryFn: api.managements.list });
+  const acquisiti = rows.filter((r) => r.category === "acquisito");
+  const pipeline = rows.filter((r) => r.category === "pipeline");
+  const totActive = acquisiti.reduce((s, r) => s + Number(r.monthly_amount ?? 0), 0);
+  const totPip = pipeline.reduce((s, r) => s + Number(r.monthly_amount ?? 0), 0);
 
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [monthly, setMonthly] = useState("");
-  const [clientId, setClientId] = useState<string | null>(null);
+  const [name, setName] = useState(""); const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState<"acquisito" | "pipeline">("acquisito");
+  const [notes, setNotes] = useState("");
 
-  const mrr = (managements ?? []).filter((m) => m.active).reduce((s, m) => s + Number(m.monthly_amount), 0);
-  const annual = mrr * 12;
+  const wrap = async (fn: () => Promise<unknown>, msg: string) => {
+    try { await fn(); qc.invalidateQueries({ queryKey: ["managements"] }); toast.success(msg); }
+    catch (e) { toast.error((e as Error).message); }
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Gestioni</h2>
-          <p className="text-sm text-muted-foreground">MRR {fmtEur(mrr)} · Annuo {fmtEur(annual)}</p>
-        </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button size="sm"><Plus className="h-4 w-4 mr-1" />Nuova</Button></DialogTrigger>
-          <DialogContent><DialogHeader><DialogTitle>Nuova gestione</DialogTitle></DialogHeader>
-            <div className="space-y-3">
-              <Input placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} />
-              <Input type="number" placeholder="€ / mese" value={monthly} onChange={(e) => setMonthly(e.target.value)} />
-              <Select value={clientId ?? "none"} onValueChange={(v) => setClientId(v === "none" ? null : v)}>
-                <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nessuno</SelectItem>
-                  {(clients ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Button className="w-full" disabled={!name || !monthly} onClick={() => {
-                create.mutate({ name, monthly_amount: Number(monthly), client_id: clientId, active: true });
-                setName(""); setMonthly(""); setClientId(null); setOpen(false);
-              }}>Aggiungi</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+    <div>
+      <Sec title={`Acquisiti · ${fmtEur(totActive)}/m`} accent={P.green} action={<Btn color={P.green} onClick={() => { setCategory("acquisito"); setOpen(true); }}>+ Aggiungi</Btn>}>
+        <List rows={acquisiti} color={P.green} onRemove={(id) => confirm("Eliminare?") && wrap(() => api.managements.remove(id), "Eliminata")} />
+      </Sec>
 
-      <div className="space-y-2">
-        {(managements ?? []).map((m) => {
-          const client = (clients ?? []).find((c) => c.id === m.client_id);
-          return (
-            <Card key={m.id} className={m.active ? "" : "opacity-60"}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{m.name}</p>
-                  {client && <p className="text-xs text-muted-foreground">{client.name}</p>}
-                  <p className="text-sm font-semibold text-primary mt-1">{fmtEur(Number(m.monthly_amount))}<span className="text-xs text-muted-foreground font-normal"> / mese</span></p>
-                </div>
-                <Switch checked={m.active} onCheckedChange={(v) => update.mutate({ id: m.id, active: v })} />
-                <Button variant="ghost" size="icon" onClick={() => remove.mutate(m.id)}><Trash2 className="h-4 w-4" /></Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <Sec title={`Pipeline future · ${fmtEur(totPip)}/m potenziali`} accent={P.purple} action={<Btn color={P.purple} onClick={() => { setCategory("pipeline"); setOpen(true); }}>+ Aggiungi</Btn>}>
+        <List rows={pipeline} color={P.purple} onRemove={(id) => confirm("Eliminare?") && wrap(() => api.managements.remove(id), "Eliminata")} />
+      </Sec>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="Nuova gestione">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <Field placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} />
+          <Field placeholder="€/mese" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <select value={category} onChange={(e) => setCategory(e.target.value as "acquisito" | "pipeline")}
+            style={{ padding: "8px 12px", borderRadius: 8, border: `1px solid ${P.border}`, fontSize: 13 }}>
+            <option value="acquisito">Acquisito</option>
+            <option value="pipeline">Pipeline</option>
+          </select>
+          <Area placeholder="Note" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+          <Btn disabled={!name} onClick={async () => {
+            await wrap(() => api.managements.create({ name, monthly_amount: amount ? Number(amount) : null, category, notes: notes || null, active: category === "acquisito" }), "Aggiunta");
+            setName(""); setAmount(""); setNotes(""); setOpen(false);
+          }}>Salva</Btn>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function List({ rows, color, onRemove }: { rows: Management[]; color: string; onRemove: (id: string) => void }) {
+  if (rows.length === 0) return <div style={{ fontSize: 12, color: P.slateL }}>Nessuna.</div>;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {rows.map((r) => (
+        <Card key={r.id} style={{ borderLeft: `4px solid ${color}`, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 700, color: P.navy, fontSize: 13 }}>{r.name}</div>
+            {r.notes && <div style={{ fontSize: 11, color: P.slate, marginTop: 2 }}>{r.notes}</div>}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color }}>{r.monthly_amount != null ? `${fmtEur(Number(r.monthly_amount))}/m` : "—"}</div>
+            <button onClick={() => onRemove(r.id)} style={{ background: "transparent", border: 0, color: P.red, cursor: "pointer", fontSize: 12 }}>×</button>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }

@@ -8,13 +8,8 @@
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -28,46 +23,45 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-navy: var(--navy);
-  --color-navy-foreground: var(--navy-foreground);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 }
 
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.985 0.003 247);
-  --foreground: oklch(0.15 0.03 265);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.03 265);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.03 265);
-  --primary: oklch(0.585 0.22 277);          /* indigo #6366f1 */
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 265);
-  --secondary-foreground: oklch(0.2 0.04 265);
-  --muted: oklch(0.96 0.01 265);
-  --muted-foreground: oklch(0.5 0.03 265);
-  --accent: oklch(0.94 0.02 277);
-  --accent-foreground: oklch(0.3 0.15 277);
-  --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.9 0.01 265);
-  --input: oklch(0.9 0.01 265);
-  --ring: oklch(0.585 0.22 277);
-  --navy: oklch(0.21 0.04 265);              /* #0f172a */
-  --navy-foreground: oklch(0.99 0 0);
-  --success: oklch(0.65 0.17 155);
-  --warning: oklch(0.75 0.17 75);
+  --radius: 0.5rem;
+  --background: #f8fafc;
+  --foreground: #0a0f1e;
+  --card: #ffffff;
+  --card-foreground: #0a0f1e;
+  --popover: #ffffff;
+  --popover-foreground: #0a0f1e;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0a0f1e;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #eef2ff;
+  --accent-foreground: #6366f1;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #6366f1;
 }
 
-@layer base {
-  * { border-color: var(--color-border); }
-  html, body { background-color: var(--color-background); color: var(--color-foreground); }
-  body { -webkit-tap-highlight-color: transparent; }
+html, body {
+  background: #f8fafc;
+  color: #0a0f1e;
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
 }
+body { -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; }
 
-/* Hide scrollbar for horizontal tab bar */
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
