@@ -11,7 +11,7 @@ export default function SettingsTab() {
   const qc = useQueryClient();
   const { data: settings } = useQuery<Settings | null>({ queryKey: ["settings"], queryFn: api.settings.get });
   const [name, setName] = useState(""); const [goal, setGoal] = useState(""); const [deadline, setDeadline] = useState("");
-  const [split, setSplit] = useState(60); const [color, setColor] = useState(P.accent);
+  const [split, setSplit] = useState(60); const [color, setColor] = useState<string>(P.accent);
 
   useEffect(() => {
     if (!settings) return;
