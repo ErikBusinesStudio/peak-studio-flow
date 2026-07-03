@@ -51,65 +51,65 @@ const run = async (p: PromiseLike<{ error: unknown }>): Promise<void> => {
 export const api = {
   clients: {
     list: () => first<Client>(T("clients").select("*").order("created_at", { ascending: true })),
-    create: (r: Partial<Client>) => T("clients").insert(r as never),
-    update: (id: string, r: Partial<Client>) => T("clients").update(r as never).eq("id", id),
-    remove: (id: string) => T("clients").delete().eq("id", id),
+    create: (r: Partial<Client>) => run(T("clients").insert(r as never)),
+    update: (id: string, r: Partial<Client>) => run(T("clients").update(r as never).eq("id", id)),
+    remove: (id: string) => run(T("clients").delete().eq("id", id)),
   },
   projects: {
     list: () => first<Project>(T("projects").select("*").order("created_at", { ascending: true })),
-    create: (r: Partial<Project>) => T("projects").insert(r as never),
-    update: (id: string, r: Partial<Project>) => T("projects").update(r as never).eq("id", id),
-    remove: (id: string) => T("projects").delete().eq("id", id),
+    create: (r: Partial<Project>) => run(T("projects").insert(r as never)),
+    update: (id: string, r: Partial<Project>) => run(T("projects").update(r as never).eq("id", id)),
+    remove: (id: string) => run(T("projects").delete().eq("id", id)),
   },
   managements: {
     list: () => first<Management>(T("managements").select("*").order("created_at", { ascending: true })),
-    create: (r: Partial<Management>) => T("managements").insert(r as never),
-    update: (id: string, r: Partial<Management>) => T("managements").update(r as never).eq("id", id),
-    remove: (id: string) => T("managements").delete().eq("id", id),
+    create: (r: Partial<Management>) => run(T("managements").insert(r as never)),
+    update: (id: string, r: Partial<Management>) => run(T("managements").update(r as never).eq("id", id)),
+    remove: (id: string) => run(T("managements").delete().eq("id", id)),
   },
   incomes: {
     list: () => first<Income>(T("incomes").select("*").order("created_at", { ascending: true })),
-    create: (r: Partial<Income>) => T("incomes").insert(r as never),
-    update: (id: string, r: Partial<Income>) => T("incomes").update(r as never).eq("id", id),
-    remove: (id: string) => T("incomes").delete().eq("id", id),
+    create: (r: Partial<Income>) => run(T("incomes").insert(r as never)),
+    update: (id: string, r: Partial<Income>) => run(T("incomes").update(r as never).eq("id", id)),
+    remove: (id: string) => run(T("incomes").delete().eq("id", id)),
   },
   costs: {
     list: () => first<Cost>(T("costs").select("*").order("created_at", { ascending: true })),
-    create: (r: Partial<Cost>) => T("costs").insert(r as never),
-    remove: (id: string) => T("costs").delete().eq("id", id),
+    create: (r: Partial<Cost>) => run(T("costs").insert(r as never)),
+    remove: (id: string) => run(T("costs").delete().eq("id", id)),
   },
   savings: {
     list: () => first<Saving>(T("savings").select("*").order("date", { ascending: false })),
-    create: (r: Partial<Saving>) => T("savings").insert(r as never),
-    remove: (id: string) => T("savings").delete().eq("id", id),
+    create: (r: Partial<Saving>) => run(T("savings").insert(r as never)),
+    remove: (id: string) => run(T("savings").delete().eq("id", id)),
   },
   todos: {
     list: () => first<Todo>(T("todos").select("*").order("created_at", { ascending: true })),
-    create: (r: Partial<Todo>) => T("todos").insert(r as never),
-    update: (id: string, r: Partial<Todo>) => T("todos").update(r as never).eq("id", id),
-    remove: (id: string) => T("todos").delete().eq("id", id),
+    create: (r: Partial<Todo>) => run(T("todos").insert(r as never)),
+    update: (id: string, r: Partial<Todo>) => run(T("todos").update(r as never).eq("id", id)),
+    remove: (id: string) => run(T("todos").delete().eq("id", id)),
   },
   events: {
     list: () => first<EventItem>(T("events").select("*").order("date", { ascending: true })),
-    create: (r: Partial<EventItem>) => T("events").insert(r as never),
-    remove: (id: string) => T("events").delete().eq("id", id),
+    create: (r: Partial<EventItem>) => run(T("events").insert(r as never)),
+    remove: (id: string) => run(T("events").delete().eq("id", id)),
   },
   updates: {
     list: () => first<Update>(T("updates").select("*").order("date", { ascending: false })),
-    create: (r: Partial<Update>) => T("updates").insert(r as never),
-    remove: (id: string) => T("updates").delete().eq("id", id),
+    create: (r: Partial<Update>) => run(T("updates").insert(r as never)),
+    remove: (id: string) => run(T("updates").delete().eq("id", id)),
   },
   diary: {
     list: () => first<DiaryEntry>(T("diary_entries").select("*").order("date", { ascending: false }).order("created_at", { ascending: false })),
-    create: (r: Partial<DiaryEntry>) => T("diary_entries").insert(r as never),
-    remove: (id: string) => T("diary_entries").delete().eq("id", id),
+    create: (r: Partial<DiaryEntry>) => run(T("diary_entries").insert(r as never)),
+    remove: (id: string) => run(T("diary_entries").delete().eq("id", id)),
   },
   settings: {
     get: async () => {
       const { data } = await T("settings").select("*").eq("id", 1).maybeSingle();
       return data as Settings | null;
     },
-    update: (r: Partial<Settings>) => T("settings").update(r as never).eq("id", 1),
+    update: (r: Partial<Settings>) => run(T("settings").update(r as never).eq("id", 1)),
   },
 };
 
