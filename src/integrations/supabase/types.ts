@@ -14,7 +14,312 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          contact: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          status: string
+        }
+        Update: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      costs: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          date: string
+          description: string
+          id: string
+          recurring: boolean
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          recurring?: boolean
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          recurring?: boolean
+        }
+        Relationships: []
+      }
+      diary_entries: {
+        Row: {
+          ai_analysis: string | null
+          content: string
+          created_at: string
+          date: string
+          id: string
+          mood: number | null
+        }
+        Insert: {
+          ai_analysis?: string | null
+          content: string
+          created_at?: string
+          date?: string
+          id?: string
+          mood?: number | null
+        }
+        Update: {
+          ai_analysis?: string | null
+          content?: string
+          created_at?: string
+          date?: string
+          id?: string
+          mood?: number | null
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          time: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          time?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          time?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      incomes: {
+        Row: {
+          amount: number
+          category: string | null
+          client_id: string | null
+          created_at: string
+          date: string
+          description: string
+          id: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incomes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      managements: {
+        Row: {
+          active: boolean
+          client_id: string | null
+          created_at: string
+          id: string
+          monthly_amount: number
+          name: string
+          notes: string | null
+          start_date: string | null
+        }
+        Insert: {
+          active?: boolean
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          monthly_amount?: number
+          name: string
+          notes?: string | null
+          start_date?: string | null
+        }
+        Update: {
+          active?: boolean
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          monthly_amount?: number
+          name?: string
+          notes?: string | null
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "managements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          amount: number
+          client_id: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          stage: string
+        }
+        Insert: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          stage: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      savings: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          dashboard_name: string
+          id: number
+          moto_split: number
+          primary_color: string
+          savings_deadline: string | null
+          savings_goal: number
+        }
+        Insert: {
+          dashboard_name?: string
+          id?: number
+          moto_split?: number
+          primary_color?: string
+          savings_deadline?: string | null
+          savings_goal?: number
+        }
+        Update: {
+          dashboard_name?: string
+          id?: number
+          moto_split?: number
+          primary_color?: string
+          savings_deadline?: string | null
+          savings_goal?: number
+        }
+        Relationships: []
+      }
+      todos: {
+        Row: {
+          created_at: string
+          done: boolean
+          id: string
+          priority: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          priority?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          priority?: string
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
