@@ -13,11 +13,15 @@ import Savings from "@/components/tabs/Savings";
 import Todos from "@/components/tabs/Todos";
 import Kpi from "@/components/tabs/Kpi";
 import Diary from "@/components/tabs/Diary";
+import Charts from "@/components/tabs/Charts";
+import logoAsset from "@/assets/peak-logo.png.asset.json";
+import bgAsset from "@/assets/peak-bg.png.asset.json";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 const TABS = [
   { id: "overview", label: "Overview", icon: "⛰" },
+  { id: "charts", label: "Grafici", icon: "📈" },
   { id: "diary", label: "Diario", icon: "📖" },
   { id: "calendar", label: "Calendario", icon: "📅" },
   { id: "pipeline", label: "Pipeline", icon: "🎯" },

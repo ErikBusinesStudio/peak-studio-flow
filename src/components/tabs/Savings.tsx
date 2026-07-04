@@ -11,11 +11,8 @@ export default function Savings() {
   const { data: settings } = useQuery<Settings | null>({ queryKey: ["settings"], queryFn: api.settings.get });
 
   const goal = settings?.savings_goal ?? 10000;
-  const motoSplit = settings?.moto_split ?? 60;
   const total = savings.reduce((s, x) => s + Number(x.amount), 0);
   const pct = Math.min(100, Math.round((total / goal) * 100));
-  const moto = total * (motoSplit / 100);
-  const inv = total - moto;
 
   const [amt, setAmt] = useState(""); const [note, setNote] = useState("");
 
@@ -38,19 +35,9 @@ export default function Savings() {
           {settings?.savings_deadline && (
             <div style={{ fontSize: 11, color: P.slateL, marginTop: 8 }}>Deadline: {new Date(settings.savings_deadline).toLocaleDateString("it-IT")}</div>
           )}
+          <div style={{ fontSize: 11, color: P.slateL, marginTop: 8 }}>Mancano {fmtEur(Math.max(0, goal - total))} all'obiettivo.</div>
         </Card>
       </Sec>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
-        <Card style={{ borderTop: `3px solid ${P.amber}` }}>
-          <div style={{ fontSize: 10, textTransform: "uppercase", color: P.slateL, fontWeight: 700 }}>Moto · {motoSplit}%</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: P.amber, marginTop: 4 }}>{fmtEur(moto)}</div>
-        </Card>
-        <Card style={{ borderTop: `3px solid ${P.accent}` }}>
-          <div style={{ fontSize: 10, textTransform: "uppercase", color: P.slateL, fontWeight: 700 }}>Investimento · {100 - motoSplit}%</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: P.accent, marginTop: 4 }}>{fmtEur(inv)}</div>
-        </Card>
-      </div>
 
       <Sec title="Aggiungi versamento">
         <Card>
