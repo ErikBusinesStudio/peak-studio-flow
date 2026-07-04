@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { api, fmtEur, type Income, type Project, type Saving, type Todo, type Update, type Settings } from "@/lib/db";
+import { api, fmtEur, type Income, type Cost, type Project, type Saving, type Todo, type Settings } from "@/lib/db";
 import { P } from "@/lib/theme";
-import { Sec } from "@/components/ui/Sec";
+import { Sec, Card } from "@/components/ui/Sec";
+import { IncomeVsCostsChart } from "@/components/Charts";
 
 function Kpi({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
   return (
@@ -15,10 +16,10 @@ function Kpi({ label, value, sub, color }: { label: string; value: string; sub?:
 
 export default function Overview() {
   const { data: incomes = [] } = useQuery<Income[]>({ queryKey: ["incomes"], queryFn: api.incomes.list });
+  const { data: costs = [] } = useQuery<Cost[]>({ queryKey: ["costs"], queryFn: api.costs.list });
   const { data: projects = [] } = useQuery<Project[]>({ queryKey: ["projects"], queryFn: api.projects.list });
   const { data: savings = [] } = useQuery<Saving[]>({ queryKey: ["savings"], queryFn: api.savings.list });
   const { data: todos = [] } = useQuery<Todo[]>({ queryKey: ["todos"], queryFn: api.todos.list });
-  const { data: updates = [] } = useQuery<Update[]>({ queryKey: ["updates"], queryFn: api.updates.list });
   const { data: settings } = useQuery<Settings | null>({ queryKey: ["settings"], queryFn: api.settings.get });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: api.clients.list });
 
@@ -35,10 +36,15 @@ export default function Overview() {
   const conv = lavorati ? Math.round((acquisiti / lavorati) * 100) : 0;
 
   const urgenti = todos.filter((t) => !t.done && t.priority === "alta");
-  const recenti = updates.slice(0, 5);
 
   return (
     <div>
+      <Sec title="Entrate vs Costi" accent={accent}>
+        <Card>
+          <IncomeVsCostsChart incomes={incomes} costs={costs} height={240} />
+        </Card>
+      </Sec>
+
       <Sec title="KPI">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))", gap: 10 }}>
           <Kpi label="Incassato" value={fmtEur(incassato)} sub="aggiornato" color={P.green} />
@@ -50,31 +56,17 @@ export default function Overview() {
         </div>
       </Sec>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }} className="ov-grid">
-        <Sec title="Azioni urgenti" accent={P.red}>
-          <div style={{ background: P.card, border: `1px solid ${P.border}`, borderRadius: 12, padding: 14 }}>
-            {urgenti.length === 0 && <div style={{ fontSize: 12, color: P.slateL }}>Nessuna urgenza.</div>}
-            {urgenti.map((t) => (
-              <div key={t.id} style={{ fontSize: 12, padding: "8px 0", borderBottom: `1px solid ${P.border}` }}>
-                <div style={{ color: P.navy, fontWeight: 600 }}>{t.title}</div>
-                {t.date_note && <div style={{ color: P.slateL, fontSize: 10, marginTop: 2 }}>{t.date_note}</div>}
-              </div>
-            ))}
-          </div>
-        </Sec>
-        <Sec title="Aggiornamenti recenti" accent={P.slateL}>
-          <div style={{ background: P.card, border: `1px solid ${P.border}`, borderRadius: 12, padding: 14 }}>
-            {recenti.length === 0 && <div style={{ fontSize: 12, color: P.slateL }}>Nessun aggiornamento.</div>}
-            {recenti.map((u) => (
-              <div key={u.id} style={{ fontSize: 12, padding: "8px 0", borderBottom: `1px solid ${P.border}` }}>
-                <div style={{ color: P.slateL, fontSize: 10 }}>{new Date(u.date).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}</div>
-                <div style={{ color: P.navy }}>{u.event}</div>
-              </div>
-            ))}
-          </div>
-        </Sec>
-      </div>
-      <style>{`@media (min-width: 720px){ .ov-grid { grid-template-columns: 1fr 1fr !important; } }`}</style>
+      <Sec title="Azioni urgenti" accent={P.red}>
+        <Card>
+          {urgenti.length === 0 && <div style={{ fontSize: 12, color: P.slateL }}>Nessuna urgenza.</div>}
+          {urgenti.map((t) => (
+            <div key={t.id} style={{ fontSize: 12, padding: "8px 0", borderBottom: `1px solid ${P.border}` }}>
+              <div style={{ color: P.navy, fontWeight: 600 }}>{t.title}</div>
+              {t.date_note && <div style={{ color: P.slateL, fontSize: 10, marginTop: 2 }}>{t.date_note}</div>}
+            </div>
+          ))}
+        </Card>
+      </Sec>
     </div>
   );
 }
