@@ -48,20 +48,20 @@ function Home() {
   const name = (settings?.dashboard_name ?? "Peak Studio").toUpperCase();
 
   return (
-    <div style={{ minHeight: "100vh", background: P.bg }}>
+    <div style={{
+      minHeight: "100vh",
+      background: `linear-gradient(180deg, rgba(26,8,16,0.88) 0%, rgba(26,8,16,0.94) 100%), url(${bgAsset.url}) center/cover fixed`,
+      backgroundColor: P.bg,
+    }}>
       {/* Header */}
       <header style={{
-        background: `linear-gradient(180deg, ${P.navyMid} 0%, ${P.bg} 100%)`,
+        background: `linear-gradient(180deg, rgba(20,6,12,0.85) 0%, rgba(26,8,16,0.4) 100%)`,
         borderBottom: `1px solid ${P.navyLt}`,
         padding: "14px 0",
+        backdropFilter: "blur(6px)",
       }}>
         <div className="app-header-inner" style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 10,
-            background: `linear-gradient(135deg, ${accent}, #7c1d3f)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 20, boxShadow: `0 4px 20px ${accent}55`, flexShrink: 0,
-          }}>⛰</div>
+          <img src={logoAsset.url} alt="Peak Studio" style={{ height: 44, width: "auto", flexShrink: 0, filter: `drop-shadow(0 4px 14px ${accent}66)` }} />
           <div style={{ minWidth: 0 }}>
             <div className="display-font app-header-title" style={{ color: P.navy, fontWeight: 400, fontSize: 18, lineHeight: 1, letterSpacing: "0.14em" }}>{name}</div>
             <div className="app-header-sub" style={{ color: P.slateL, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.14em", marginTop: 4 }}>Dashboard · Peak Studio</div>
@@ -74,7 +74,7 @@ function Home() {
       </header>
 
       {/* Tabs */}
-      <nav style={{ background: P.navyMid, borderBottom: `1px solid ${P.navyLt}`, position: "sticky", top: 0, zIndex: 20 }}>
+      <nav style={{ background: "rgba(20,6,12,0.9)", backdropFilter: "blur(6px)", borderBottom: `1px solid ${P.navyLt}`, position: "sticky", top: 0, zIndex: 20 }}>
         <div ref={scrollerRef} className="no-scrollbar" style={{ maxWidth: 1080, margin: "0 auto", display: "flex", overflowX: "auto" }}>
           {TABS.map((t) => {
             const isActive = tab === t.id;
@@ -87,7 +87,6 @@ function Home() {
                   fontWeight: isActive ? 700 : 500,
                   textTransform: "uppercase",
                   letterSpacing: "0.1em",
-                  borderBottom: `2px solid ${isActive ? accent : "transparent"}`,
                   background: "transparent", border: 0, cursor: "pointer",
                   display: "flex", alignItems: "center", gap: 7,
                   borderTop: 0, borderLeft: 0, borderRight: 0,
@@ -104,6 +103,7 @@ function Home() {
 
       <main className="app-main" style={{ maxWidth: 1080, margin: "0 auto", padding: "22px 20px" }}>
         {tab === "overview" && <Overview />}
+        {tab === "charts" && <Charts />}
         {tab === "diary" && <Diary />}
         {tab === "calendar" && <Calendar />}
         {tab === "pipeline" && <Pipeline />}
