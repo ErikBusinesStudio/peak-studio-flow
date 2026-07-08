@@ -305,6 +305,27 @@ export type Database = {
         }
         Relationships: []
       }
+      savings_targets: {
+        Row: {
+          close_target: number | null
+          label: string | null
+          month: string
+          save_target: number | null
+        }
+        Insert: {
+          close_target?: number | null
+          label?: string | null
+          month: string
+          save_target?: number | null
+        }
+        Update: {
+          close_target?: number | null
+          label?: string | null
+          month?: string
+          save_target?: number | null
+        }
+        Relationships: []
+      }
       settings: {
         Row: {
           dashboard_name: string
