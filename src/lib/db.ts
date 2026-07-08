@@ -84,6 +84,9 @@ export const api = {
     create: (r: Partial<Saving>) => run(T("savings").insert(r as never)),
     remove: (id: string) => run(T("savings").delete().eq("id", id)),
   },
+  savingsTargets: {
+    list: () => first<SavingsTarget>(T("savings_targets").select("*").order("month", { ascending: true })),
+  },
   todos: {
     list: () => first<Todo>(T("todos").select("*").order("created_at", { ascending: true })),
     create: (r: Partial<Todo>) => run(T("todos").insert(r as never)),
