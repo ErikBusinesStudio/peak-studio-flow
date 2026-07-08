@@ -28,6 +28,7 @@ export interface Cost {
   id: string; description: string; amount: number; date_label: string | null; date: string | null;
 }
 export interface Saving { id: string; amount: number; note: string | null; date: string; }
+export interface SavingsTarget { month: string; label: string | null; save_target: number | null; close_target: number | null; }
 export interface Todo { id: string; title: string; priority: Priority; done: boolean; date_note: string | null; }
 export interface EventItem { id: string; title: string; date: string; time: string | null; notes: string | null; }
 export interface Update { id: string; date: string; event: string; category: string; }
