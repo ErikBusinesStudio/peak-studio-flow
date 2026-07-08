@@ -28,7 +28,7 @@ const TABS = [
   { id: "managements", label: "Gestioni", icon: "🔄" },
   { id: "clients", label: "Clienti", icon: "👥" },
   { id: "finances", label: "Finanze", icon: "💰" },
-  { id: "savings", label: "Risparmi", icon: "🏦" },
+  { id: "savings", label: "Vetta 10k", icon: "⛰" },
   { id: "todos", label: "To-Do", icon: "✅" },
   { id: "kpi", label: "KPI", icon: "📊" },
 ] as const;
