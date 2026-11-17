@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { api, fmtEur, type Income, type Cost, type Project, type Saving, type Todo, type Settings } from "@/lib/db";
 import { P } from "@/lib/theme";
-import { Sec, Card } from "@/components/ui/Sec";
+import { Sec, Card, Btn, Area, Modal } from "@/components/ui/Sec";
 import { IncomeVsCostsChart } from "@/components/Charts";
 
 function Kpi({ label, value, sub, color }: { label: string; value: string; sub?: string; color: string }) {
@@ -15,6 +17,58 @@ function Kpi({ label, value, sub, color }: { label: string; value: string; sub?:
 }
 
 export default function Overview() {
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportJson, setExportJson] = useState("");
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportError, setExportError] = useState("");
+
+  const exportAll = async () => {
+    setExportOpen(true);
+    setExportJson("");
+    setExportError("");
+    setExportLoading(true);
+    try {
+      // Existing SELECT * calls retain every stored field, including fields
+      // not displayed by the UI, timestamps and relationship identifiers.
+      const [clients, projects, managements, incomes, costs, savings, savingsTargets, diary, events, todos, settings, updates] = await Promise.all([
+        api.clients.list(), api.projects.list(), api.managements.list(),
+        api.incomes.list(), api.costs.list(), api.savings.list(),
+        api.savingsTargets.list(), api.diary.list(), api.events.list(),
+        api.todos.list(), api.settings.get(), api.updates.list(),
+      ]);
+      if (!settings) throw new Error("Impossibile leggere le impostazioni. Riprova l’esportazione.");
+      setExportJson(JSON.stringify({
+        clients, projects, managements, incomes, costs, savings,
+        savings_targets: savingsTargets, diary_entries: diary, events,
+        todos, settings: [settings], updates,
+      }, null, 2));
+    } catch {
+      setExportError("Esportazione non riuscita: impossibile leggere tutti i dati. Chiudi e riprova.");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const copyExport = async () => {
+    try {
+      await navigator.clipboard.writeText(exportJson);
+      toast.success("JSON copiato");
+    } catch {
+      toast.error("Copia non riuscita. Puoi selezionare il JSON o scaricare il file.");
+    }
+  };
+
+  const downloadExport = () => {
+    const url = URL.createObjectURL(new Blob([exportJson], { type: "application/json;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "peak-studio-export.json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  };
+
   const { data: incomes = [] } = useQuery<Income[]>({ queryKey: ["incomes"], queryFn: api.incomes.list });
   const { data: costs = [] } = useQuery<Cost[]>({ queryKey: ["costs"], queryFn: api.costs.list });
   const { data: projects = [] } = useQuery<Project[]>({ queryKey: ["projects"], queryFn: api.projects.list });
@@ -39,6 +93,20 @@ export default function Overview() {
 
   return (
     <div>
+      <div className="mb-3 flex justify-end">
+        <Btn onClick={exportAll} disabled={exportLoading}>Esporta tutto</Btn>
+      </div>
+      <Modal open={exportOpen} onClose={() => setExportOpen(false)} title="Esporta tutto">
+        <div role="dialog" aria-label="Esporta tutto" aria-busy={exportLoading}>
+          {exportLoading && <p role="status">Caricamento dati…</p>}
+          {exportError && <p role="alert">{exportError}</p>}
+          <Area aria-label="JSON completo dell’app" readOnly value={exportJson} rows={14} />
+          <div className="mt-3 flex justify-end gap-2">
+            <Btn onClick={copyExport} disabled={!exportJson || exportLoading}>Copia</Btn>
+            <Btn onClick={downloadExport} disabled={!exportJson || exportLoading}>Scarica</Btn>
+          </div>
+        </div>
+      </Modal>
       <Sec title="Entrate vs Costi" accent={accent}>
         <Card>
           <IncomeVsCostsChart incomes={incomes} costs={costs} height={240} />

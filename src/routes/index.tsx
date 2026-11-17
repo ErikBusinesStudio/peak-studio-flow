@@ -17,7 +17,17 @@ import Charts from "@/components/tabs/Charts";
 import logoAsset from "@/assets/peak-logo.png.asset.json";
 import bgAsset from "@/assets/peak-bg.png.asset.json";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  component: Home,
+  head: () => ({ meta: [
+    { title: "Peak Studio — Dashboard e gestione attività" },
+    { name: "description", content: "La dashboard Peak Studio per clienti, progetti, finanze, diario e obiettivo Vetta 10k." },
+    { property: "og:title", content: "Peak Studio — Dashboard e gestione attività" },
+    { property: "og:description", content: "Clienti, progetti, finanze, diario e obiettivo Vetta 10k nella dashboard Peak Studio." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
+});
 
 const TABS = [
   { id: "overview", label: "Overview", icon: "⛰" },
