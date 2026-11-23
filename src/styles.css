@@ -4,10 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Peak Studio OS — stesso linguaggio visivo del sito: "La scalata di un ghiacciaio" */
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -27,45 +30,73 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  --font-display: "Bebas Neue", "Archivo Black", system-ui, sans-serif;
+
+  --color-snow: var(--snow);
+  --color-ice-100: var(--ice-100);
+  --color-ice-300: var(--ice-300);
+  --color-glacier-500: var(--glacier-500);
+  --color-glacier-700: var(--glacier-700);
+  --color-deep-700: var(--deep-700);
+  --color-deep-900: var(--deep-900);
+  --color-cyan-peak: var(--cyan-peak);
+
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: #1a0810;
-  --foreground: #f5e6d3;
-  --card: #25101a;
-  --card-foreground: #f5e6d3;
-  --popover: #25101a;
-  --popover-foreground: #f5e6d3;
-  --primary: #e11d48;
-  --primary-foreground: #ffffff;
-  --secondary: #2f1522;
-  --secondary-foreground: #f5e6d3;
-  --muted: #2f1522;
-  --muted-foreground: #c9a89b;
-  --accent: #3a1621;
-  --accent-foreground: #f5e6d3;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #3a1621;
-  --input: #3a1621;
-  --ring: #e11d48;
+  --snow: hsl(214 100% 98%);
+  --ice-100: hsl(212 100% 95%);
+  --ice-300: hsl(209 100% 87%);
+  --glacier-500: hsl(210 71% 55%);
+  --glacier-700: hsl(213 79% 37%);
+  --deep-700: hsl(216 78% 25%);
+  --deep-900: hsl(216 78% 13%);
+  --cyan-peak: hsl(191 100% 68%);
+  --ink: hsl(215 65% 12%);
+
+  --radius: 1rem;
+  --background: var(--snow);
+  --foreground: var(--ink);
+  --card: hsl(0 0% 100%);
+  --card-foreground: var(--ink);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: var(--ink);
+  --primary: var(--glacier-700);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: var(--ice-100);
+  --secondary-foreground: var(--ink);
+  --muted: var(--ice-100);
+  --muted-foreground: hsl(219 35% 31%);
+  --accent: var(--cyan-peak);
+  --accent-foreground: var(--deep-900);
+  --destructive: hsl(0 72% 42%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(213 45% 82%);
+  --input: hsl(213 45% 72%);
+  --ring: var(--glacier-700);
 }
 
-html, body {
-  background: #1a0810;
-  color: #f5e6d3;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  margin: 0;
-  padding: 0;
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
-body { -webkit-tap-highlight-color: transparent; }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; border-color: var(--border); }
+h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.03em; line-height: 1; }
+:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
 
-.display-font {
-  font-family: "Bebas Neue", "Archivo Black", system-ui, sans-serif;
-  letter-spacing: 0.02em;
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
 @utility no-scrollbar {
@@ -73,13 +104,91 @@ body { -webkit-tap-highlight-color: transparent; }
   &::-webkit-scrollbar { display: none; }
 }
 
-/* Mobile compact layout */
-@media (max-width: 640px) {
-  .app-main { padding: 12px 10px !important; }
-  .app-header-inner { padding: 0 12px !important; gap: 8px !important; }
-  .app-header-title { font-size: 13px !important; }
-  .app-header-sub { font-size: 9px !important; }
-  .app-tab-btn { padding: 9px 10px !important; font-size: 11px !important; gap: 4px !important; }
-  .app-tab-btn span:last-child { font-size: 11px; }
-  section { margin-bottom: 16px !important; }
+/* ---------- Componenti del design system ---------- */
+
+/* Titolo di sezione: tipografia gigante come sul sito, ridotta per un'app di lavoro */
+.title-xl {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 7vw, 3.75rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+}
+.title-md {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.25rem, 3.4vw, 1.75rem);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+/* Etichetta tecnica in monospace */
+.hud {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Kicker con rombo cyan */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.kicker::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+  background: var(--cyan-peak);
+  box-shadow: 0 0 0 1px var(--glacier-700);
+}
+
+/* Superficie in vetro */
+.surface {
+  border-radius: 1.25rem;
+  border: 1px solid hsl(213 45% 80%);
+  background: hsl(0 0% 100% / 0.78);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px -28px hsl(213 79% 37% / 0.35);
+}
+.surface-deep {
+  border-radius: 1.25rem;
+  border: 1px solid hsl(0 0% 100% / 0.18);
+  background: linear-gradient(160deg, var(--deep-900), var(--deep-700));
+  color: hsl(212 100% 96%);
+  box-shadow: 0 20px 50px -28px hsl(216 78% 13% / 0.7);
+}
+
+.app-header {
+  background: var(--deep-900);
+  color: hsl(212 100% 96%);
+  border-bottom: 1px solid hsl(0 0% 100% / 0.12);
+}
+
+/* Fondo morbido: neve che sfuma nel ghiaccio */
+.app-bg {
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 420px at 85% -10%, hsl(191 100% 68% / 0.16), transparent 70%),
+    linear-gradient(180deg, var(--snow) 0%, var(--ice-100) 100%);
+}
+
+.nav-link-app { position: relative; }
+.nav-link-app[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  left: 12px; right: 12px; bottom: -1px;
+  height: 2px;
+  background: var(--cyan-peak);
 }

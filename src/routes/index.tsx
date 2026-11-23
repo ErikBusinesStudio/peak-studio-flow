@@ -1,129 +1,174 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/db";
-import { P } from "@/lib/theme";
-import Overview from "@/components/tabs/Overview";
-import Calendar from "@/components/tabs/Calendar";
-import Pipeline from "@/components/tabs/Pipeline";
-import Managements from "@/components/tabs/Managements";
-import Clients from "@/components/tabs/Clients";
-import Finances from "@/components/tabs/Finances";
-import Savings from "@/components/tabs/Savings";
-import Todos from "@/components/tabs/Todos";
-import Kpi from "@/components/tabs/Kpi";
-import Diary from "@/components/tabs/Diary";
-import Charts from "@/components/tabs/Charts";
-import logoAsset from "@/assets/peak-logo.png.asset.json";
-import bgAsset from "@/assets/peak-bg.png.asset.json";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { differenceInCalendarDays, format, startOfMonth, addMonths } from "date-fns";
+import { it } from "date-fns/locale";
+import { toast } from "sonner";
+import { api, fmtData, fmtEur, STATI, categoriaLabel } from "@/lib/gestionale";
+import { PageHead, Stat, Empty, StatoBadge } from "@/components/app/bits";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/")({
   component: Home,
-  head: () => ({ meta: [
-    { title: "Peak Studio — Dashboard e gestione attività" },
-    { name: "description", content: "La dashboard Peak Studio per clienti, progetti, finanze, diario e obiettivo Vetta 10k." },
-    { property: "og:title", content: "Peak Studio — Dashboard e gestione attività" },
-    { property: "og:description", content: "Clienti, progetti, finanze, diario e obiettivo Vetta 10k nella dashboard Peak Studio." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary_large_image" },
-  ] }),
+  head: () => ({ meta: [{ title: "Home — Peak Studio OS" }] }),
 });
 
-const TABS = [
-  { id: "overview", label: "Overview", icon: "⛰" },
-  { id: "charts", label: "Grafici", icon: "📈" },
-  { id: "diary", label: "Diario", icon: "📖" },
-  { id: "calendar", label: "Calendario", icon: "📅" },
-  { id: "pipeline", label: "Pipeline", icon: "🎯" },
-  { id: "managements", label: "Gestioni", icon: "🔄" },
-  { id: "clients", label: "Clienti", icon: "👥" },
-  { id: "finances", label: "Finanze", icon: "💰" },
-  { id: "savings", label: "Vetta 10k", icon: "⛰" },
-  { id: "todos", label: "To-Do", icon: "✅" },
-  { id: "kpi", label: "KPI", icon: "📊" },
-] as const;
-type TabId = typeof TABS[number]["id"];
-
 function Home() {
-  const [tab, setTab] = useState<TabId>("overview");
-  const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: api.settings.get });
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const qc = useQueryClient();
+  const clienti = useQuery({ queryKey: ["clienti"], queryFn: api.clienti.list });
+  const pagamenti = useQuery({ queryKey: ["pagamenti-all"], queryFn: api.pagamenti.listAll });
+  const manutenzioni = useQuery({ queryKey: ["manutenzioni-all"], queryFn: api.manutenzioni.listAll });
+  const impostazioni = useQuery({ queryKey: ["impostazioni"], queryFn: api.impostazioni.get });
 
-  useEffect(() => {
-    const el = scrollerRef.current?.querySelector<HTMLButtonElement>(`[data-tab="${tab}"]`);
-    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [tab]);
+  const [zero, setZero] = useState("");
+  const saveZero = useMutation({
+    mutationFn: (d: string | null) => api.impostazioni.update({ data_zero: d }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["impostazioni"] }); toast.success("Data zero salvata"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
-  const accent = settings?.primary_color ?? P.accent;
-  const name = (settings?.dashboard_name ?? "Peak Studio").toUpperCase();
+  const d = useMemo(() => {
+    const cl = clienti.data ?? [];
+    const pg = pagamenti.data ?? [];
+    const mn = manutenzioni.data ?? [];
+    const imp = impostazioni.data;
+    const oggi = new Date();
+    const oggiIso = format(oggi, "yyyy-MM-dd");
+
+    const perStato = Object.fromEntries(STATI.map((s) => [s.id, cl.filter((c) => c.stato === s.id).length]));
+    const dopo = pg.filter((p) => p.periodo === "dopo" && p.stato === "incassato");
+    const prima = pg.filter((p) => p.periodo === "prima" && p.stato === "incassato");
+    const incassatoDopo = dopo.reduce((s, p) => s + Number(p.importo_netto), 0);
+    const primaLordo = prima.reduce((s, p) => s + Number(p.importo_lordo), 0);
+    const primaNetto = prima.reduce((s, p) => s + Number(p.importo_netto), 0);
+
+    const obiettivo = Number(imp?.obiettivo ?? 10000);
+    const scadenza = imp?.scadenza ?? "2027-06-08";
+    const giorni = Math.max(0, differenceInCalendarDays(new Date(scadenza), oggi));
+    const settimane = Math.max(giorni / 7, 1 / 7);
+    const mancano = Math.max(0, obiettivo - incassatoDopo);
+    const aSettimana = giorni === 0 ? mancano : mancano / settimane;
+
+    const prossimoPrimo = startOfMonth(addMonths(oggi, 1));
+    const prossimoPrimoIso = format(prossimoPrimo, "yyyy-MM-dd");
+    const attive = mn.filter((m) => m.attiva);
+    const mensileNetto = attive
+      .filter((m) => !m.attiva_dal || m.attiva_dal <= prossimoPrimoIso)
+      .reduce((s, m) => s + Number(m.importo_netto), 0);
+
+    const followup = cl
+      .filter((c) => c.prossimo_contatto && c.prossimo_contatto <= oggiIso && !["rifiutato", "pagato"].includes(c.stato))
+      .sort((a, b) => (a.prossimo_contatto! < b.prossimo_contatto! ? -1 : 1));
+    const daRicontattare = cl.filter((c) => c.stato === "contattato" || c.stato === "in_trattativa");
+
+    return { perStato, total: cl.length, incassatoDopo, primaLordo, primaNetto, obiettivo, scadenza, giorni, mancano, aSettimana,
+      prossimoPrimo, mensileNetto, nManut: attive.length, followup, daRicontattare, dataZero: imp?.data_zero ?? null };
+  }, [clienti.data, pagamenti.data, manutenzioni.data, impostazioni.data]);
+
+  const loading = clienti.isLoading || pagamenti.isLoading;
+  const errore = clienti.error ?? pagamenti.error ?? manutenzioni.error ?? impostazioni.error;
+  const pct = d.obiettivo > 0 ? Math.min(100, (d.incassatoDopo / d.obiettivo) * 100) : 0;
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: `linear-gradient(180deg, rgba(26,8,16,0.88) 0%, rgba(26,8,16,0.94) 100%), url(${bgAsset.url}) center/cover fixed`,
-      backgroundColor: P.bg,
-    }}>
-      {/* Header */}
-      <header style={{
-        background: `linear-gradient(180deg, rgba(20,6,12,0.85) 0%, rgba(26,8,16,0.4) 100%)`,
-        borderBottom: `1px solid ${P.navyLt}`,
-        padding: "14px 0",
-        backdropFilter: "blur(6px)",
-      }}>
-        <div className="app-header-inner" style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "center", gap: 14 }}>
-          <img src={logoAsset.url} alt="Peak Studio" style={{ height: 44, width: "auto", flexShrink: 0, filter: `drop-shadow(0 4px 14px ${accent}66)` }} />
-          <div style={{ minWidth: 0 }}>
-            <div className="display-font app-header-title" style={{ color: P.navy, fontWeight: 400, fontSize: 18, lineHeight: 1, letterSpacing: "0.14em" }}>{name}</div>
-            <div className="app-header-sub" style={{ color: P.slateL, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.14em", marginTop: 4 }}>Dashboard · Peak Studio</div>
-          </div>
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 999, background: P.green, boxShadow: `0 0 8px ${P.green}` }} />
-            <div style={{ color: P.slateL, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.14em" }}>Live</div>
-          </div>
-        </div>
-      </header>
+    <>
+      <PageHead kicker="Campo base" title="Home" />
 
-      {/* Tabs */}
-      <nav style={{ background: "rgba(20,6,12,0.9)", backdropFilter: "blur(6px)", borderBottom: `1px solid ${P.navyLt}`, position: "sticky", top: 0, zIndex: 20 }}>
-        <div ref={scrollerRef} className="no-scrollbar" style={{ maxWidth: 1080, margin: "0 auto", display: "flex", overflowX: "auto" }}>
-          {TABS.map((t) => {
-            const isActive = tab === t.id;
-            return (
-              <button key={t.id} data-tab={t.id} onClick={() => setTab(t.id)}
-                className="app-tab-btn"
-                style={{
-                  flexShrink: 0, padding: "12px 16px", fontSize: 12,
-                  color: isActive ? P.navy : P.slateL,
-                  fontWeight: isActive ? 700 : 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  background: "transparent", border: 0, cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 7,
-                  borderTop: 0, borderLeft: 0, borderRight: 0,
-                  borderBottomWidth: 2, borderBottomStyle: "solid", borderBottomColor: isActive ? accent : "transparent",
-                  transition: "color 0.15s",
-                }}>
-                <span style={{ fontSize: 14 }}>{t.icon}</span>
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
+      {errore && (
+        <div className="surface mb-6 border-destructive/40 p-5 text-sm">
+          <p className="font-semibold text-destructive">Impossibile leggere i dati: {(errore as Error).message}</p>
+          <p className="mt-1 text-muted-foreground">Se è la prima volta, controlla che la migrazione del database v2 sia stata applicata e di aver effettuato l&apos;accesso.</p>
         </div>
-      </nav>
+      )}
 
-      <main className="app-main" style={{ maxWidth: 1080, margin: "0 auto", padding: "22px 20px" }}>
-        {tab === "overview" && <Overview />}
-        {tab === "charts" && <Charts />}
-        {tab === "diary" && <Diary />}
-        {tab === "calendar" && <Calendar />}
-        {tab === "pipeline" && <Pipeline />}
-        {tab === "managements" && <Managements />}
-        {tab === "clients" && <Clients />}
-        {tab === "finances" && <Finances />}
-        {tab === "savings" && <Savings />}
-        {tab === "todos" && <Todos />}
-        {tab === "kpi" && <Kpi />}
-      </main>
-    </div>
+      {/* Obiettivo */}
+      <section className="surface-deep mb-6 p-6 md:p-8">
+        <p className="hud text-white/70">Obiettivo · {fmtEur(d.obiettivo)} entro {fmtData(d.scadenza)}</p>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+          <p className="font-display text-5xl font-extrabold leading-none tracking-tight md:text-7xl">{loading ? "…" : fmtEur(d.incassatoDopo)}</p>
+          <p className="hud text-white/70">{d.giorni} giorni · {Math.round(d.giorni / 7)} settimane</p>
+        </div>
+        <Progress value={pct} className="mt-5 h-3 bg-white/15 [&>div]:bg-[hsl(191_100%_68%)]" />
+        <div className="mt-4 grid gap-3 text-sm text-white/80 sm:grid-cols-3">
+          <p>Mancano <strong className="text-white">{fmtEur(d.mancano)}</strong></p>
+          <p>Servono <strong className="text-white">{fmtEur(Math.ceil(d.aSettimana))}</strong> a settimana</p>
+          <p>Conta solo l&apos;incassato <strong className="text-white">netto</strong> dopo la data zero</p>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-white/15 pt-5">
+          <span className="hud text-white/70">Data zero</span>
+          {d.dataZero ? (
+            <>
+              <strong>{fmtData(d.dataZero)}</strong>
+              <Button size="sm" variant="secondary" className="rounded-full" onClick={() => saveZero.mutate(null)}>Azzera</Button>
+            </>
+          ) : (
+            <>
+              <span className="text-sm text-white/80">non impostata: parte con la prima vendita dopo il 17/11/2026</span>
+              <Input type="date" value={zero} onChange={(e) => setZero(e.target.value)} className="h-9 w-40 border-white/30 bg-white/10 text-white" />
+              <Button size="sm" disabled={!zero} className="rounded-full" onClick={() => saveZero.mutate(zero)}>Imposta</Button>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Funnel clienti */}
+      <section className="mb-6">
+        <p className="kicker mb-3">Clienti · {d.total} schede</p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          {STATI.map((s) => (
+            <Link key={s.id} to="/clienti" search={{ stato: s.id }} className="surface block p-4 transition-transform hover:-translate-y-0.5">
+              <p className="hud text-muted-foreground">{s.label}</p>
+              <p className="mt-2 font-display text-4xl font-extrabold leading-none">{d.perStato[s.id] ?? 0}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Numeri */}
+      <section className="mb-6 grid gap-3 md:grid-cols-3">
+        <Stat label="Storico · incassato lordo" value={fmtEur(d.primaLordo)} hint={`Netto ${fmtEur(d.primaNetto)} · periodo "prima", non conta per i 10.000 €`} />
+        <Stat label="Manutenzioni attive" value={`${d.nManut}`} hint={`${fmtEur(d.mensileNetto)} netti dal ${format(d.prossimoPrimo, "d MMMM", { locale: it })}`} />
+        <Stat label="Follow-up scaduti" value={`${d.followup.length}`} hint={d.followup.length ? "Contatti con scadenza oggi o passata" : "Nessun follow-up in ritardo"} />
+      </section>
+
+      {/* Azioni */}
+      <section className="grid gap-6 md:grid-cols-2">
+        <div className="surface p-5">
+          <h2 className="title-md mb-4">Da ricontattare</h2>
+          {d.daRicontattare.length === 0 ? <Empty>Nessuno al momento.</Empty> : (
+            <ul className="divide-y divide-border">
+              {d.daRicontattare.map((c) => (
+                <li key={c.id}>
+                  <Link to="/clienti/$id" params={{ id: c.id }} className="flex items-center justify-between gap-3 py-3">
+                    <span>
+                      <span className="block font-semibold">{c.nome}</span>
+                      <span className="text-sm text-muted-foreground">{categoriaLabel(c.categoria)}{c.comune ? ` · ${c.comune}` : ""}</span>
+                    </span>
+                    <StatoBadge stato={c.stato} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="surface p-5">
+          <h2 className="title-md mb-4">Follow-up scaduti</h2>
+          {d.followup.length === 0 ? <Empty>Nessun follow-up in ritardo. Imposta &quot;Prossimo contatto&quot; nelle schede per vederli qui.</Empty> : (
+            <ul className="divide-y divide-border">
+              {d.followup.map((c) => (
+                <li key={c.id}>
+                  <Link to="/clienti/$id" params={{ id: c.id }} className="flex items-center justify-between gap-3 py-3">
+                    <span className="font-semibold">{c.nome}</span>
+                    <span className="hud text-muted-foreground">{fmtData(c.prossimo_contatto)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
+    </>
   );
 }
