@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FinanzeRouteImport } from './routes/finanze'
 import { Route as FollowupRouteImport } from './routes/followup'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PipelineRouteImport } from './routes/pipeline'
@@ -23,6 +24,11 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanzeRoute = FinanzeRouteImport.update({
+  id: '/finanze',
+  path: '/finanze',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FollowupRoute = FollowupRouteImport.update({
@@ -76,6 +82,7 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/finanze': typeof FinanzeRoute
   '/followup': typeof FollowupRoute
   '/mcp': typeof McpRoute
   '/pipeline': typeof PipelineRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/finanze': typeof FinanzeRoute
   '/followup': typeof FollowupRoute
   '/mcp': typeof McpRoute
   '/pipeline': typeof PipelineRoute
@@ -101,6 +109,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/finanze': typeof FinanzeRoute
   '/followup': typeof FollowupRoute
   '/mcp': typeof McpRoute
   '/pipeline': typeof PipelineRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/finanze'
     | '/followup'
     | '/mcp'
     | '/pipeline'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/finanze'
     | '/followup'
     | '/mcp'
     | '/pipeline'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/finanze'
     | '/followup'
     | '/mcp'
     | '/pipeline'
@@ -152,6 +164,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FinanzeRoute: typeof FinanzeRoute
   FollowupRoute: typeof FollowupRoute
   McpRoute: typeof McpRoute
   PipelineRoute: typeof PipelineRoute
@@ -170,6 +183,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finanze': {
+      id: '/finanze'
+      path: '/finanze'
+      fullPath: '/finanze'
+      preLoaderRoute: typeof FinanzeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/followup': {
@@ -240,6 +260,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FinanzeRoute: FinanzeRoute,
   FollowupRoute: FollowupRoute,
   McpRoute: McpRoute,
   PipelineRoute: PipelineRoute,
