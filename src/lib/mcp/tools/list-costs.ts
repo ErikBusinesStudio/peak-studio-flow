@@ -7,8 +7,8 @@ export default defineTool({
   description: "List all recorded costs / expenses.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async () => {
-    const { data, error } = await sb().from("costs").select("*").order("created_at", { ascending: true });
+  handler: async (_input, ctx) => {
+    const { data, error } = await sb(ctx).from("costs").select("*").order("created_at", { ascending: true });
     if (error) return err(error.message);
     return ok(data);
   },

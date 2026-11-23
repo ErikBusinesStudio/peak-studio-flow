@@ -1,14 +1,17 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { ToolContext } from "@lovable.dev/mcp-js";
 
-let client: SupabaseClient | undefined;
-
-export function sb(): SupabaseClient {
-  if (client) return client;
+/** Client Supabase con il token OAuth del chiamante: RLS applicata come quell'utente. */
+export function sb(ctx: ToolContext): SupabaseClient {
+  const token = ctx.getToken();
+  if (!token) throw new Error("Token OAuth verificato mancante");
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) throw new Error("Supabase env not configured");
-  client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-  return client;
+  return createClient(url, key, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 export function ok(data: unknown) {

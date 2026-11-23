@@ -7,8 +7,8 @@ export default defineTool({
   description: "List all savings deposits with amount, note, and date.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async () => {
-    const { data, error } = await sb().from("savings").select("*").order("date", { ascending: false });
+  handler: async (_input, ctx) => {
+    const { data, error } = await sb(ctx).from("savings").select("*").order("date", { ascending: false });
     if (error) return err(error.message);
     return ok(data);
   },

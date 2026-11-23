@@ -7,8 +7,8 @@ export default defineTool({
   description: "Compute headline KPIs: total collected, pending to collect, total costs, net, savings total.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async () => {
-    const s = sb();
+  handler: async (_input, ctx) => {
+    const s = sb(ctx);
     const [{ data: incomes, error: e1 }, { data: costs, error: e2 }, { data: savings, error: e3 }] = await Promise.all([
       s.from("incomes").select("amount,status"),
       s.from("costs").select("amount"),
