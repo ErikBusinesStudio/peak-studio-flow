@@ -12,8 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FinanzeRouteImport } from './routes/finanze'
 import { Route as FollowupRouteImport } from './routes/followup'
+import { Route as ListinoRouteImport } from './routes/listino'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as MessaggiRouteImport } from './routes/messaggi'
 import { Route as PipelineRouteImport } from './routes/pipeline'
+import { Route as StrumentiRouteImport } from './routes/strumenti'
+import { Route as VisiteRouteImport } from './routes/visite'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ClientiIndexRouteImport } from './routes/clienti.index'
@@ -36,14 +40,34 @@ const FollowupRoute = FollowupRouteImport.update({
   path: '/followup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListinoRoute = ListinoRouteImport.update({
+  id: '/listino',
+  path: '/listino',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MessaggiRoute = MessaggiRouteImport.update({
+  id: '/messaggi',
+  path: '/messaggi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PipelineRoute = PipelineRouteImport.update({
   id: '/pipeline',
   path: '/pipeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StrumentiRoute = StrumentiRouteImport.update({
+  id: '/strumenti',
+  path: '/strumenti',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VisiteRoute = VisiteRouteImport.update({
+  id: '/visite',
+  path: '/visite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93ListToolsRoute =
@@ -84,8 +108,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/finanze': typeof FinanzeRoute
   '/followup': typeof FollowupRoute
+  '/listino': typeof ListinoRoute
   '/mcp': typeof McpRoute
+  '/messaggi': typeof MessaggiRoute
   '/pipeline': typeof PipelineRoute
+  '/strumenti': typeof StrumentiRoute
+  '/visite': typeof VisiteRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/clienti/$id': typeof ClientiIdRoute
@@ -97,8 +125,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/finanze': typeof FinanzeRoute
   '/followup': typeof FollowupRoute
+  '/listino': typeof ListinoRoute
   '/mcp': typeof McpRoute
+  '/messaggi': typeof MessaggiRoute
   '/pipeline': typeof PipelineRoute
+  '/strumenti': typeof StrumentiRoute
+  '/visite': typeof VisiteRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/clienti/$id': typeof ClientiIdRoute
@@ -111,8 +143,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/finanze': typeof FinanzeRoute
   '/followup': typeof FollowupRoute
+  '/listino': typeof ListinoRoute
   '/mcp': typeof McpRoute
+  '/messaggi': typeof MessaggiRoute
   '/pipeline': typeof PipelineRoute
+  '/strumenti': typeof StrumentiRoute
+  '/visite': typeof VisiteRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/clienti/$id': typeof ClientiIdRoute
@@ -126,8 +162,12 @@ export interface FileRouteTypes {
     | '/'
     | '/finanze'
     | '/followup'
+    | '/listino'
     | '/mcp'
+    | '/messaggi'
     | '/pipeline'
+    | '/strumenti'
+    | '/visite'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/clienti/$id'
@@ -139,8 +179,12 @@ export interface FileRouteTypes {
     | '/'
     | '/finanze'
     | '/followup'
+    | '/listino'
     | '/mcp'
+    | '/messaggi'
     | '/pipeline'
+    | '/strumenti'
+    | '/visite'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/clienti/$id'
@@ -152,8 +196,12 @@ export interface FileRouteTypes {
     | '/'
     | '/finanze'
     | '/followup'
+    | '/listino'
     | '/mcp'
+    | '/messaggi'
     | '/pipeline'
+    | '/strumenti'
+    | '/visite'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/clienti/$id'
@@ -166,8 +214,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FinanzeRoute: typeof FinanzeRoute
   FollowupRoute: typeof FollowupRoute
+  ListinoRoute: typeof ListinoRoute
   McpRoute: typeof McpRoute
+  MessaggiRoute: typeof MessaggiRoute
   PipelineRoute: typeof PipelineRoute
+  StrumentiRoute: typeof StrumentiRoute
+  VisiteRoute: typeof VisiteRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ClientiIdRoute: typeof ClientiIdRoute
@@ -199,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FollowupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/listino': {
+      id: '/listino'
+      path: '/listino'
+      fullPath: '/listino'
+      preLoaderRoute: typeof ListinoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
@@ -206,11 +265,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/messaggi': {
+      id: '/messaggi'
+      path: '/messaggi'
+      fullPath: '/messaggi'
+      preLoaderRoute: typeof MessaggiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pipeline': {
       id: '/pipeline'
       path: '/pipeline'
       fullPath: '/pipeline'
       preLoaderRoute: typeof PipelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/strumenti': {
+      id: '/strumenti'
+      path: '/strumenti'
+      fullPath: '/strumenti'
+      preLoaderRoute: typeof StrumentiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/visite': {
+      id: '/visite'
+      path: '/visite'
+      fullPath: '/visite'
+      preLoaderRoute: typeof VisiteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -262,8 +342,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FinanzeRoute: FinanzeRoute,
   FollowupRoute: FollowupRoute,
+  ListinoRoute: ListinoRoute,
   McpRoute: McpRoute,
+  MessaggiRoute: MessaggiRoute,
   PipelineRoute: PipelineRoute,
+  StrumentiRoute: StrumentiRoute,
+  VisiteRoute: VisiteRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,

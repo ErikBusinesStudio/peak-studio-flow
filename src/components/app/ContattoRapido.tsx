@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const KEEP = "keep";
 
 /** Registra un contatto, imposta il prossimo follow-up e (opzionale) cambia stato. */
-export function ContattoRapido({ cliente, onClose }: { cliente: Cliente | null; onClose: () => void }) {
+export function ContattoRapido({ cliente, onClose, canaleIniziale = "whatsapp" }: { cliente: Cliente | null; onClose: () => void; canaleIniziale?: Canale }) {
   const qc = useQueryClient();
   const [canale, setCanale] = useState<Canale>("whatsapp");
   const [esito, setEsito] = useState("");
@@ -21,7 +21,7 @@ export function ContattoRapido({ cliente, onClose }: { cliente: Cliente | null; 
   const [followup, setFollowup] = useState("");
   const [stato, setStato] = useState<string>(KEEP);
 
-  useEffect(() => { if (cliente) { setCanale("whatsapp"); setEsito(""); setNote(""); setFollowup(""); setStato(KEEP); } }, [cliente]);
+  useEffect(() => { if (cliente) { setCanale(canaleIniziale); setEsito(""); setNote(""); setFollowup(""); setStato(KEEP); } }, [cliente, canaleIniziale]);
 
   const save = useMutation({
     mutationFn: async () => {

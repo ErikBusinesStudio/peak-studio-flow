@@ -6,6 +6,7 @@ import {
   api, CATEGORIE, STATI, STATO_RANK, categoriaLabel, telLink, whatsappLink,
   type Categoria, type Stato,
 } from "@/lib/gestionale";
+import { BarsH, ChartCard, Donut, STATO_COLOR } from "@/components/app/charts";
 import { PageHead, StatoBadge, Empty } from "@/components/app/bits";
 import { ClienteForm } from "@/components/app/ClienteForm";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,18 @@ function Clienti() {
   const filtriAttivi = categoria !== ALL || comune !== ALL || periodo !== ALL || sito !== ALL || manut !== ALL || q !== "";
   const reset = () => { setQ(""); setCategoria(ALL); setComune(ALL); setPeriodo(ALL); setSito(ALL); setManut(ALL); };
 
+  const perCategoria = useMemo(() => {
+    const m = new Map<string, number>();
+    filtrati.forEach((c) => m.set(categoriaLabel(c.categoria as Categoria), (m.get(categoriaLabel(c.categoria as Categoria)) ?? 0) + 1));
+    return [...m.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+  }, [filtrati]);
+  const perComune = useMemo(() => {
+    const m = new Map<string, number>();
+    filtrati.forEach((c) => m.set(c.comune ?? "Da definire", (m.get(c.comune ?? "Da definire") ?? 0) + 1));
+    return [...m.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
+  }, [filtrati]);
+  const perStatoGraf = STATI.map((s) => ({ name: s.short, value: filtrati.filter((c) => c.stato === s.id).length, color: STATO_COLOR[s.id] })).filter((x) => x.value > 0);
+
   const sel = (value: string, onChange: (v: string) => void, label: string, items: { v: string; l: string }[]) => (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="h-10 w-full bg-white/70" aria-label={label}><SelectValue /></SelectTrigger>
@@ -112,6 +125,15 @@ function Clienti() {
           <button onClick={reset} className="hud mt-3 flex items-center gap-1.5 text-muted-foreground hover:text-foreground"><X className="size-3.5" />Azzera filtri</button>
         )}
       </div>
+
+      <details className="mb-6">
+        <summary className="hud cursor-pointer text-muted-foreground">Grafici sui {filtrati.length} clienti filtrati</summary>
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          <ChartCard title="Per stato" empty={perStatoGraf.length === 0}><Donut data={perStatoGraf} /></ChartCard>
+          <ChartCard title="Per tipo di attività" empty={perCategoria.length === 0}><BarsH data={perCategoria} /></ChartCard>
+          <ChartCard title="Per comune (top 10)" empty={perComune.length === 0}><BarsH data={perComune} /></ChartCard>
+        </div>
+      </details>
 
       {clienti.error && <Empty>Errore: {(clienti.error as Error).message}. Controlla la migrazione del database v2.</Empty>}
       {clienti.isLoading && <Empty>Caricamento…</Empty>}

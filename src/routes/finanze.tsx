@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { it } from "date-fns/locale";
 import { toast } from "sonner";
-import { api, fmtData, fmtEur, type Pagamento } from "@/lib/gestionale";
+import { api, fmtData, fmtEur, tipoServizioLabel, type Pagamento } from "@/lib/gestionale";
+import { BarsH, BarsV, ChartCard, Donut, Lines } from "@/components/app/charts";
 import { PageHead, Stat, Empty } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -22,6 +23,7 @@ function Finanze() {
   const clienti = useQuery({ queryKey: ["clienti"], queryFn: api.clienti.list });
   const pagamenti = useQuery({ queryKey: ["pagamenti-all"], queryFn: api.pagamenti.listAll });
   const manut = useQuery({ queryKey: ["manutenzioni-all"], queryFn: api.manutenzioni.listAll });
+  const servizi = useQuery({ queryKey: ["servizi-all"], queryFn: api.servizi.listAll });
   const imp = useQuery({ queryKey: ["impostazioni"], queryFn: api.impostazioni.get });
 
   const nome = useMemo(() => new Map((clienti.data ?? []).map((c) => [c.id, c.nome])), [clienti.data]);
@@ -61,12 +63,28 @@ function Finanze() {
     const gap = Math.max(0, obiettivo - previsto);
 
     // ticket medio: netto per cliente pagato nello storico (esclude le manutenzioni ricorrenti, indicativo)
-    const perCliente = new Map<string, number>();
-    prima.forEach((p) => perCliente.set(p.cliente_id, (perCliente.get(p.cliente_id) ?? 0) + Number(p.importo_netto)));
-    const ticket = perCliente.size ? sum([...perCliente.values()]) / perCliente.size : 0;
+    const primaPerCliente = new Map<string, number>();
+    prima.forEach((p) => primaPerCliente.set(p.cliente_id, (primaPerCliente.get(p.cliente_id) ?? 0) + Number(p.importo_netto)));
+    const ticket = primaPerCliente.size ? sum([...primaPerCliente.values()]) / primaPerCliente.size : 0;
     const venditeNecessarie = ticket > 0 ? Math.ceil(gap / ticket) : null;
 
-    return { obiettivo, dopoInc, dopoDa, primaLordo, primaNetto, mesi, manutProiez, previsto, gap, ticket, venditeNecessarie, nManut: mn.length };
+    // cumulato previsto: incassato + da incassare, poi +manutenzioni ogni 1° del mese
+    let cum = dopoInc + dopoDa;
+    const cumulato = [{ name: "Oggi", previsto: Math.round(cum) }, ...mesi.map((m) => { cum += m.netto; return { name: m.label, previsto: Math.round(cum) }; })];
+
+    const perMese = new Map<string, { name: string; storico: number; dopo: number; k: string }>();
+    pg.filter((p) => p.stato === "incassato" && p.data).forEach((p) => {
+      const k = p.data!.slice(0, 7);
+      const r = perMese.get(k) ?? { name: format(new Date(p.data!), "MMM yy", { locale: it }), storico: 0, dopo: 0, k };
+      if (p.periodo === "prima") r.storico += Number(p.importo_netto); else r.dopo += Number(p.importo_netto);
+      perMese.set(k, r);
+    });
+    const incassiMese = [...perMese.values()].sort((a, b) => (a.k < b.k ? -1 : 1));
+    const perCli = new Map<string, number>();
+    pg.filter((p) => p.stato === "incassato").forEach((p) => perCli.set(p.cliente_id, (perCli.get(p.cliente_id) ?? 0) + Number(p.importo_netto)));
+    const perCliente = [...perCli.entries()].map(([id, value]) => ({ id, value })).sort((a, b) => b.value - a.value);
+
+    return { cumulato, incassiMese, perCliente, obiettivo, dopoInc, dopoDa, primaLordo, primaNetto, mesi, manutProiez, previsto, gap, ticket, venditeNecessarie, nManut: mn.length };
   }, [pagamenti.data, manut.data, imp.data]);
 
   const lista = (pagamenti.data ?? [])
@@ -83,6 +101,25 @@ function Finanze() {
         <Stat label="Da incassare (netto)" value={fmtEur(d.dopoDa)} />
         <Stat label="Manutenzioni attive" value={`${d.nManut}`} hint={`${fmtEur(d.mesi[0]?.netto ?? 0)} netti al prossimo 1°`} />
         <Stat label="Storico incassato" value={fmtEur(d.primaLordo)} hint={`Netto ${fmtEur(d.primaNetto)} · non conta per l'obiettivo`} />
+      </section>
+
+      <section className="mb-6 grid gap-4 md:grid-cols-2">
+        <ChartCard title="Verso l'obiettivo" hint="Incassato + da incassare + manutenzioni attive, mese per mese (netto)">
+          <Lines data={d.cumulato} series={[{ key: "previsto", label: "Previsto", color: "#2f6fb5" }]} goal={{ value: d.obiettivo, label: `Obiettivo ${fmtEur(d.obiettivo)}` }} money />
+        </ChartCard>
+        <ChartCard title="Incassi per mese (netto)" hint="Solo pagamenti incassati con data" empty={d.incassiMese.length === 0}>
+          <BarsV data={d.incassiMese} money series={[{ key: "storico", label: "Storico", color: "#8fb8e8" }, { key: "dopo", label: "Dopo data zero", color: "#0a2048" }]} />
+        </ChartCard>
+        <ChartCard title="Netto incassato per cliente" empty={d.perCliente.length === 0}>
+          <BarsH money data={d.perCliente.map((x) => ({ name: nome.get(x.id) ?? "—", value: x.value }))} />
+        </ChartCard>
+        <ChartCard title="Servizi venduti per tipo" hint="Valore dei servizi registrati" empty={(servizi.data ?? []).length === 0}>
+          <Donut money data={(() => {
+            const m = new Map<string, number>();
+            (servizi.data ?? []).forEach((x) => m.set(tipoServizioLabel(x.tipo), (m.get(tipoServizioLabel(x.tipo)) ?? 0) + Number(x.importo)));
+            return [...m.entries()].map(([name, value]) => ({ name, value }));
+          })()} />
+        </ChartCard>
       </section>
 
       <section className="surface mb-6 p-5">

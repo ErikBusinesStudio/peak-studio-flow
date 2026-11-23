@@ -176,6 +176,7 @@ export const api = {
   servizi: {
     list: (clienteId: string) =>
       many<Servizio>(tb("servizi_venduti").select("*").eq("cliente_id", clienteId).order("created_at", { ascending: true })),
+    listAll: () => many<Servizio>(tb("servizi_venduti").select("*")),
     create: (r: Partial<Servizio>) => exec(tb("servizi_venduti").insert(r)),
     remove: (id: string) => exec(tb("servizi_venduti").delete().eq("id", id)),
   },
@@ -203,4 +204,19 @@ export const api = {
     },
     update: (r: Partial<Impostazioni>) => exec(tb("impostazioni").update(r).eq("id", 1)),
   },
+};
+
+/** Link "Aggiungi a Google Calendar" (evento di un giorno, senza bisogno di login nell'app). */
+export const calendarLink = (titolo: string, isoDate: string, dettagli?: string) => {
+  const d = isoDate.replace(/-/g, "");
+  const next = new Date(isoDate + "T12:00:00");
+  next.setDate(next.getDate() + 1);
+  const n = next.toISOString().slice(0, 10).replace(/-/g, "");
+  const q = new URLSearchParams({ action: "TEMPLATE", text: titolo, dates: `${d}/${n}`, details: dettagli ?? "" });
+  return `https://calendar.google.com/calendar/render?${q.toString()}`;
+};
+
+export const mapsLink = (indirizzo: string | null | undefined, comune: string | null | undefined) => {
+  const q = [indirizzo, comune].filter(Boolean).join(", ");
+  return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : null;
 };

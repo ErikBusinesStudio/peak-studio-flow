@@ -9,6 +9,7 @@ import {
   tipoServizioLabel, TIPI_SERVIZIO, whatsappLink,
   type Canale, type Cliente, type Pagamento, type Stato, type TipoServizio,
 } from "@/lib/gestionale";
+import { BarsV, ChartCard } from "@/components/app/charts";
 import { StatoBadge, Empty, Stat } from "@/components/app/bits";
 import { ClienteForm } from "@/components/app/ClienteForm";
 import { Button } from "@/components/ui/button";
@@ -295,6 +296,12 @@ function TabSoldi({ c }: { c: Cliente }) {
         <Stat label="Incassato netto" value={fmtEur(incNetto)} tone="deep" />
         <Stat label="Da incassare (netto)" value={fmtEur(daInc)} />
       </div>
+
+      <ChartCard title="Pagamenti del cliente (netto)" empty={pg.length === 0}>
+        <BarsV money height={180}
+          data={pg.map((p) => ({ name: (p.data ? fmtData(p.data) : p.data_label ?? p.descrizione).slice(0, 14), incassato: p.stato === "incassato" ? Number(p.importo_netto) : 0, da_incassare: p.stato === "da_incassare" ? Number(p.importo_netto) : 0 }))}
+          series={[{ key: "incassato", label: "Incassato", color: "#2e9e6b" }, { key: "da_incassare", label: "Da incassare", color: "#f2b84b" }]} />
+      </ChartCard>
 
       <section className="surface p-5">
         <h2 className="title-md mb-4">Servizi</h2>

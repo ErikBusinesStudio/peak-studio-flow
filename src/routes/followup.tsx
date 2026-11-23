@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addDays, differenceInCalendarDays, format } from "date-fns";
+import { addDays, differenceInCalendarDays, format, subDays } from "date-fns";
 import { MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
-import { api, categoriaLabel, fmtData, telLink, whatsappLink, type Cliente } from "@/lib/gestionale";
+import { api, calendarLink, canaleLabel, categoriaLabel, fmtData, telLink, whatsappLink, type Cliente } from "@/lib/gestionale";
+import { BarsV, ChartCard, Donut } from "@/components/app/charts";
 import { PageHead, Empty, StatoBadge } from "@/components/app/bits";
 import { ContattoRapido } from "@/components/app/ContattoRapido";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,16 @@ function Followup() {
     };
   }, [clienti.data, contatti.data]);
 
+  const grafGiorni = useMemo(() => Array.from({ length: 14 }, (_, i) => {
+    const day = format(subDays(new Date(), 13 - i), "yyyy-MM-dd");
+    return { name: format(subDays(new Date(), 13 - i), "d/M"), contatti: (contatti.data ?? []).filter((c) => c.data === day).length };
+  }), [contatti.data]);
+  const grafCanali = useMemo(() => {
+    const m = new Map<string, number>();
+    (contatti.data ?? []).forEach((c) => m.set(canaleLabel(c.canale), (m.get(canaleLabel(c.canale)) ?? 0) + 1));
+    return [...m.entries()].map(([name, value]) => ({ name, value }));
+  }, [contatti.data]);
+
   const riga = (c: Cliente) => {
     const wa = whatsappLink(c.telefono), tel = telLink(c.telefono);
     const last = g.ultimo.get(c.id);
@@ -65,6 +76,10 @@ function Followup() {
         <div className="mt-2.5 flex flex-wrap gap-2">
           {tel && <a href={tel} className="hud inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-2"><Phone className="size-3.5" />Chiama</a>}
           {wa && <a href={wa} target="_blank" rel="noreferrer" className="hud inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-2"><MessageCircle className="size-3.5" />WhatsApp</a>}
+          {c.prossimo_contatto && (
+            <a href={calendarLink(`Ricontattare ${c.nome}`, c.prossimo_contatto, `Peak Studio · ${categoriaLabel(c.categoria)}${c.telefono ? ` · ${c.telefono}` : ""}`)}
+              target="_blank" rel="noreferrer" className="hud inline-flex items-center rounded-full border border-border px-3 py-2">Calendar</a>
+          )}
           <Button size="sm" className="rounded-full" onClick={() => setRegistra(c)}>Fatto</Button>
           {[1, 3, 7].map((n) => (
             <Button key={n} size="sm" variant="ghost" className="rounded-full" onClick={() => rimanda.mutate({ id: c.id, giorni: n })}>+{n}g</Button>
@@ -85,6 +100,12 @@ function Followup() {
     <>
       <PageHead kicker="Chi ricontattare" title="Follow-up" />
       {clienti.error && <Empty>Errore: {(clienti.error as Error).message}</Empty>}
+      <div className="mb-6 grid gap-4 md:grid-cols-2">
+        <ChartCard title="Contatti negli ultimi 14 giorni" empty={(contatti.data ?? []).length === 0}>
+          <BarsV data={grafGiorni} series={[{ key: "contatti", label: "Contatti", color: "#2f6fb5" }]} height={180} />
+        </ChartCard>
+        <ChartCard title="Contatti per canale" empty={grafCanali.length === 0}><Donut data={grafCanali} /></ChartCard>
+      </div>
       <div className="grid gap-6 lg:grid-cols-2">
         {blocco("Scaduti", g.scaduti, "Nessun follow-up in ritardo.")}
         {blocco("Oggi", g.oggi, "Niente in programma per oggi.")}

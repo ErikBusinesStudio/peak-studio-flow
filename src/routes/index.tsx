@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { differenceInCalendarDays, format, startOfMonth, addMonths } from "date-fns";
+import { differenceInCalendarDays, format, startOfMonth, addMonths, startOfWeek, subWeeks, isSameDay } from "date-fns";
 import { it } from "date-fns/locale";
 import { toast } from "sonner";
 import { api, fmtData, fmtEur, STATI, categoriaLabel } from "@/lib/gestionale";
 import { PageHead, Stat, Empty, StatoBadge } from "@/components/app/bits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BarsH, BarsV, ChartCard, STATO_COLOR } from "@/components/app/charts";
 import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/")({
@@ -21,6 +22,7 @@ function Home() {
   const pagamenti = useQuery({ queryKey: ["pagamenti-all"], queryFn: api.pagamenti.listAll });
   const manutenzioni = useQuery({ queryKey: ["manutenzioni-all"], queryFn: api.manutenzioni.listAll });
   const impostazioni = useQuery({ queryKey: ["impostazioni"], queryFn: api.impostazioni.get });
+  const contattiAll = useQuery({ queryKey: ["contatti-all"], queryFn: api.contatti.listAll });
 
   const [zero, setZero] = useState("");
   const saveZero = useMutation({
@@ -66,6 +68,16 @@ function Home() {
     return { perStato, total: cl.length, incassatoDopo, primaLordo, primaNetto, obiettivo, scadenza, giorni, mancano, aSettimana,
       prossimoPrimo, mensileNetto, nManut: attive.length, followup, daRicontattare, dataZero: imp?.data_zero ?? null };
   }, [clienti.data, pagamenti.data, manutenzioni.data, impostazioni.data]);
+
+  const grafFunnel = STATI.map((s) => ({ name: s.short, value: d.perStato[s.id] ?? 0, color: STATO_COLOR[s.id] }));
+  const grafSett = useMemo(() => {
+    const inizio = startOfWeek(new Date(), { weekStartsOn: 1 });
+    return Array.from({ length: 8 }, (_, i) => {
+      const w = subWeeks(inizio, 7 - i);
+      const n = (contattiAll.data ?? []).filter((c) => c.data && isSameDay(startOfWeek(new Date(c.data), { weekStartsOn: 1 }), w)).length;
+      return { name: format(w, "d/M"), contatti: n };
+    });
+  }, [contattiAll.data]);
 
   const loading = clienti.isLoading || pagamenti.isLoading;
   const errore = clienti.error ?? pagamenti.error ?? manutenzioni.error ?? impostazioni.error;
@@ -124,6 +136,13 @@ function Home() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="mb-6 grid gap-4 md:grid-cols-2">
+        <ChartCard title="Clienti per stato" empty={d.total === 0}><BarsH data={grafFunnel} /></ChartCard>
+        <ChartCard title="Contatti per settimana" hint="Ultime 8 settimane (inizio settimana)" empty={(contattiAll.data ?? []).length === 0}>
+          <BarsV data={grafSett} series={[{ key: "contatti", label: "Contatti", color: "#2f6fb5" }]} />
+        </ChartCard>
       </section>
 
       {/* Numeri */}
