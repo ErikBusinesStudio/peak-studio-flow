@@ -1,0 +1,10 @@
+DROP POLICY IF EXISTS "autenticati manutenzioni" ON public.manutenzioni;
+CREATE POLICY "owner all" ON public.manutenzioni FOR ALL TO authenticated USING (public.is_app_owner()) WITH CHECK (public.is_app_owner());
+DROP POLICY IF EXISTS "autenticati impostazioni" ON public.impostazioni;
+CREATE POLICY "owner all" ON public.impostazioni FOR ALL TO authenticated USING (public.is_app_owner()) WITH CHECK (public.is_app_owner());
+DROP POLICY IF EXISTS "autenticati pagamenti" ON public.pagamenti;
+CREATE POLICY "owner all" ON public.pagamenti FOR ALL TO authenticated USING (public.is_app_owner()) WITH CHECK (public.is_app_owner());
+DROP POLICY IF EXISTS "autenticati servizi_venduti" ON public.servizi_venduti;
+CREATE POLICY "owner all" ON public.servizi_venduti FOR ALL TO authenticated USING (public.is_app_owner()) WITH CHECK (public.is_app_owner());
+DROP POLICY IF EXISTS "autenticati clienti" ON public.clienti;
+CREATE POLICY "owner all" ON public.clienti FOR ALL TO authenticated USING (public.is_app_owner()) WITH CHECK (public.is_app_owner());
