@@ -17,9 +17,9 @@
     },
     "tools": [
       {
-        "name": "list_clients",
-        "title": "List clients",
-        "description": "List all clients in Basecamp with status, zone, contract value, and amount collected.",
+        "name": "list_clienti",
+        "title": "Elenco clienti",
+        "description": "Elenca i clienti di Peak Studio (stato, categoria, comune, prossimo contatto). Filtro opzionale per stato.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -28,14 +28,26 @@
         "inputSchema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
-          "properties": {}
+          "properties": {
+            "stato": {
+              "type": "string",
+              "enum": [
+                "da_contattare",
+                "contattato",
+                "in_trattativa",
+                "accettato",
+                "pagato",
+                "rifiutato"
+              ]
+            }
+          }
         },
         "outputSchema": null
       },
       {
-        "name": "list_incomes",
-        "title": "List incomes",
-        "description": "List all income entries (collected and pending) with amounts and status.",
+        "name": "list_pagamenti",
+        "title": "Elenco pagamenti",
+        "description": "Elenca i pagamenti (lordo, trattenuta, netto, periodo prima/dopo la data zero, incassato/da incassare).",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -114,8 +126,8 @@
       },
       {
         "name": "get_kpis",
-        "title": "Get KPIs",
-        "description": "Compute headline KPIs: total collected, pending to collect, total costs, net, savings total.",
+        "title": "KPI",
+        "description": "Indicatori principali: clienti per stato, incassato netto dopo la data zero, da incassare, storico, obiettivo e quanto manca.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -205,9 +217,9 @@
         "outputSchema": null
       },
       {
-        "name": "create_income",
-        "title": "Record income",
-        "description": "Record an income entry (collected or pending).",
+        "name": "add_pagamento",
+        "title": "Registra pagamento",
+        "description": "Registra un pagamento di un cliente (importo lordo, trattenuta % opzionale; il netto è calcolato dal database).",
         "annotations": {
           "readOnlyHint": false,
           "idempotentHint": false,
@@ -217,44 +229,57 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
-            "description": {
+            "cliente_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "descrizione": {
               "type": "string",
               "minLength": 1
             },
-            "amount": {
-              "type": "number",
-              "description": "Amount in EUR"
+            "importo_lordo": {
+              "type": "number"
             },
-            "status": {
+            "trattenuta_pct": {
+              "default": 0,
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "periodo": {
+              "default": "dopo",
+              "type": "string",
+              "enum": [
+                "prima",
+                "dopo"
+              ]
+            },
+            "stato": {
+              "default": "da_incassare",
               "type": "string",
               "enum": [
                 "incassato",
                 "da_incassare"
               ]
             },
-            "category": {
-              "type": "string"
-            },
-            "date": {
+            "data": {
               "description": "YYYY-MM-DD",
-              "type": "string"
-            },
-            "date_label": {
               "type": "string"
             }
           },
           "required": [
-            "description",
-            "amount",
-            "status"
+            "cliente_id",
+            "descrizione",
+            "importo_lordo"
           ]
         },
         "outputSchema": null
       },
       {
-        "name": "create_client",
-        "title": "Create client",
-        "description": "Add a new client to Basecamp.",
+        "name": "create_cliente",
+        "title": "Nuovo cliente",
+        "description": "Aggiunge un cliente o lead al gestionale.",
         "annotations": {
           "readOnlyHint": false,
           "idempotentHint": false,
@@ -264,39 +289,92 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
-            "name": {
+            "nome": {
               "type": "string",
               "minLength": 1
             },
-            "status": {
+            "stato": {
+              "default": "da_contattare",
               "type": "string",
               "enum": [
-                "acquisito",
-                "in_attesa",
                 "da_contattare",
+                "contattato",
+                "in_trattativa",
+                "accettato",
+                "pagato",
                 "rifiutato"
               ]
             },
-            "zona": {
+            "categoria": {
+              "description": "Es. ristorazione, auto_officine, altro",
               "type": "string"
             },
-            "value": {
-              "description": "Contract value in EUR",
-              "type": "number"
-            },
-            "phone": {
+            "comune": {
               "type": "string"
             },
-            "contact": {
+            "telefono": {
               "type": "string"
             },
-            "notes": {
+            "referente": {
+              "type": "string"
+            },
+            "note": {
               "type": "string"
             }
           },
           "required": [
-            "name",
-            "status"
+            "nome"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "add_contatto",
+        "title": "Registra contatto",
+        "description": "Registra un contatto con un cliente e aggiorna il prossimo follow-up.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "cliente_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "canale": {
+              "type": "string",
+              "enum": [
+                "whatsapp",
+                "telefono",
+                "di_persona",
+                "email",
+                "social",
+                "altro"
+              ]
+            },
+            "esito": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "data": {
+              "description": "YYYY-MM-DD, default oggi",
+              "type": "string"
+            },
+            "prossimo_followup": {
+              "description": "YYYY-MM-DD",
+              "type": "string"
+            }
+          },
+          "required": [
+            "cliente_id",
+            "canale"
           ]
         },
         "outputSchema": null
