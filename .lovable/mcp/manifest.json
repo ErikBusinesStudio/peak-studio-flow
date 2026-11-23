@@ -3,13 +3,17 @@
   "sdk_version": "0.20.0",
   "path": "/mcp",
   "auth": {
-    "type": "none"
+    "type": "oauth",
+    "issuer": "https://ehgyspjsztffebkpsxyk.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
   },
   "mcp": {
     "server": {
-      "name": "basecamp-mcp",
+      "name": "peak-studio-hub",
       "version": "0.1.0",
-      "title": "Basecamp (Peak Studio)"
+      "title": "Peak Studio Hub"
     },
     "tools": [
       {

@@ -7,8 +7,8 @@ export default defineTool({
   description: "List all income entries (collected and pending) with amounts and status.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async () => {
-    const { data, error } = await sb().from("incomes").select("*").order("created_at", { ascending: true });
+  handler: async (_input, ctx) => {
+    const { data, error } = await sb(ctx).from("incomes").select("*").order("created_at", { ascending: true });
     if (error) return err(error.message);
     return ok(data);
   },

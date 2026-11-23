@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_owner: {
+        Row: {
+          created_at: string
+          singleton: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          singleton?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          singleton?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           collected: number
@@ -409,7 +427,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_app_owner: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

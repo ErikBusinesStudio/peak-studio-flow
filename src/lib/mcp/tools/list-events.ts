@@ -7,8 +7,8 @@ export default defineTool({
   description: "List scheduled calendar events with date, time, and notes.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async () => {
-    const { data, error } = await sb().from("events").select("*").order("date", { ascending: true });
+  handler: async (_input, ctx) => {
+    const { data, error } = await sb(ctx).from("events").select("*").order("date", { ascending: true });
     if (error) return err(error.message);
     return ok(data);
   },

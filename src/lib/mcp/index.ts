@@ -1,4 +1,6 @@
-import { defineMcp } from "@lovable.dev/mcp-js";
+import { auth, defineMcp } from "@lovable.dev/mcp-js";
+
+const projectRef = import.meta.env["VITE_SUPABASE_PROJECT_ID"] ?? "project-ref-unset";
 import listClients from "./tools/list-clients";
 import listIncomes from "./tools/list-incomes";
 import listCosts from "./tools/list-costs";
@@ -12,8 +14,12 @@ import createIncome from "./tools/create-income";
 import createClient from "./tools/create-client";
 
 export default defineMcp({
-  name: "basecamp-mcp",
-  title: "Basecamp (Peak Studio)",
+  name: "peak-studio-hub",
+  title: "Peak Studio Hub",
+  auth: auth.oauth.issuer({
+    issuer: `https://${projectRef}.supabase.co/auth/v1`,
+    acceptedAudiences: "authenticated",
+  }),
   version: "0.1.0",
   instructions:
     "Basecamp is Erik's personal management app for Peak Studio (web agency). Tools let you read and update clients, incomes, costs, to-dos, calendar events, savings, and headline KPIs.",

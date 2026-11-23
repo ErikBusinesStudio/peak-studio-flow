@@ -16,8 +16,8 @@ export default defineTool({
     notes: z.string().optional(),
   },
   annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: false },
-  handler: async ({ name, status, zona, value, phone, contact, notes }) => {
-    const { data, error } = await sb()
+  handler: async ({ name, status, zona, value, phone, contact, notes }, ctx) => {
+    const { data, error } = await sb(ctx)
       .from("clients")
       .insert({
         name, status,

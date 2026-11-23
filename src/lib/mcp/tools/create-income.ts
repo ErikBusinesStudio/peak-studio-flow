@@ -15,8 +15,8 @@ export default defineTool({
     date_label: z.string().optional(),
   },
   annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: false },
-  handler: async ({ description, amount, status, category, date, date_label }) => {
-    const { data, error } = await sb()
+  handler: async ({ description, amount, status, category, date, date_label }, ctx) => {
+    const { data, error } = await sb(ctx)
       .from("incomes")
       .insert({
         description, amount, status,

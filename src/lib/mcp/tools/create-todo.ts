@@ -12,8 +12,8 @@ export default defineTool({
     date_note: z.string().optional().describe("Optional date/time note"),
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
-  handler: async ({ title, priority, date_note }) => {
-    const { data, error } = await sb()
+  handler: async ({ title, priority, date_note }, ctx) => {
+    const { data, error } = await sb(ctx)
       .from("todos")
       .insert({ title, priority, done: false, date_note: date_note ?? null })
       .select()

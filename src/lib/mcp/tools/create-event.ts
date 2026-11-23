@@ -13,8 +13,8 @@ export default defineTool({
     notes: z.string().optional(),
   },
   annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: false },
-  handler: async ({ title, date, time, notes }) => {
-    const { data, error } = await sb()
+  handler: async ({ title, date, time, notes }, ctx) => {
+    const { data, error } = await sb(ctx)
       .from("events")
       .insert({ title, date, time: time ?? null, notes: notes ?? null })
       .select()
