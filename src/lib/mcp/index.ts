@@ -1,8 +1,8 @@
 import { auth, defineMcp } from "@lovable.dev/mcp-js";
 
 const projectRef = import.meta.env["VITE_SUPABASE_PROJECT_ID"] ?? "project-ref-unset";
-import listClients from "./tools/list-clients";
-import listIncomes from "./tools/list-incomes";
+import listClienti from "./tools/list-clienti";
+import listPagamenti from "./tools/list-pagamenti";
 import listCosts from "./tools/list-costs";
 import listTodos from "./tools/list-todos";
 import listEvents from "./tools/list-events";
@@ -10,8 +10,9 @@ import listSavings from "./tools/list-savings";
 import getKpis from "./tools/get-kpis";
 import createTodo from "./tools/create-todo";
 import createEvent from "./tools/create-event";
-import createIncome from "./tools/create-income";
-import createClient from "./tools/create-client";
+import addPagamento from "./tools/add-pagamento";
+import createCliente from "./tools/create-cliente";
+import addContatto from "./tools/add-contatto";
 
 export default defineMcp({
   name: "peak-studio-hub",
@@ -22,10 +23,10 @@ export default defineMcp({
   }),
   version: "0.1.0",
   instructions:
-    "Basecamp is Erik's personal management app for Peak Studio (web agency). Tools let you read and update clients, incomes, costs, to-dos, calendar events, savings, and headline KPIs.",
+    "Gestionale di Erik per Peak Studio (agenzia web). Strumenti per leggere e aggiornare clienti, contatti, pagamenti e KPI (obiettivo 10.000 €). Costi, to-do, eventi e risparmi leggono ancora le vecchie tabelle.",
   tools: [
-    listClients,
-    listIncomes,
+    listClienti,
+    listPagamenti,
     listCosts,
     listTodos,
     listEvents,
@@ -33,7 +34,8 @@ export default defineMcp({
     getKpis,
     createTodo,
     createEvent,
-    createIncome,
-    createClient,
+    addPagamento,
+    createCliente,
+    addContatto,
   ],
 });
