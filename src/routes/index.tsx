@@ -154,7 +154,7 @@ function Home() {
           )}
         </div>
         <div className="surface p-5">
-          <h2 className="title-md mb-4">Follow-up scaduti</h2>
+          <h2 className="title-md mb-4">Follow-up scaduti <Link to="/followup" className="hud ml-2 text-glacier-700 underline">Vedi tutti</Link></h2>
           {d.followup.length === 0 ? <Empty>Nessun follow-up in ritardo. Imposta &quot;Prossimo contatto&quot; nelle schede per vederli qui.</Empty> : (
             <ul className="divide-y divide-border">
               {d.followup.map((c) => (

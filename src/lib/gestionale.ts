@@ -169,6 +169,7 @@ export const api = {
     list: (clienteId: string) =>
       many<Contatto>(tb("contatti_log").select("*").eq("cliente_id", clienteId)
         .order("data", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false })),
+    listAll: () => many<Contatto>(tb("contatti_log").select("*")),
     create: (r: Partial<Contatto>) => exec(tb("contatti_log").insert(r)),
     remove: (id: string) => exec(tb("contatti_log").delete().eq("id", id)),
   },

@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FollowupRouteImport } from './routes/followup'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ClientiIndexRouteImport } from './routes/clienti.index'
@@ -22,9 +24,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FollowupRoute = FollowupRouteImport.update({
+  id: '/followup',
+  path: '/followup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PipelineRoute = PipelineRouteImport.update({
+  id: '/pipeline',
+  path: '/pipeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93ListToolsRoute =
@@ -58,7 +70,9 @@ const Char91DotmcpChar93InvokeToolToolRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/followup': typeof FollowupRoute
   '/mcp': typeof McpRoute
+  '/pipeline': typeof PipelineRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/clienti/$id': typeof ClientiIdRoute
@@ -67,7 +81,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/followup': typeof FollowupRoute
   '/mcp': typeof McpRoute
+  '/pipeline': typeof PipelineRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/clienti/$id': typeof ClientiIdRoute
@@ -77,7 +93,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/followup': typeof FollowupRoute
   '/mcp': typeof McpRoute
+  '/pipeline': typeof PipelineRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/clienti/$id': typeof ClientiIdRoute
@@ -88,7 +106,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/followup'
     | '/mcp'
+    | '/pipeline'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/clienti/$id'
@@ -97,7 +117,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/followup'
     | '/mcp'
+    | '/pipeline'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/clienti/$id'
@@ -106,7 +128,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/followup'
     | '/mcp'
+    | '/pipeline'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/clienti/$id'
@@ -116,7 +140,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FollowupRoute: typeof FollowupRoute
   McpRoute: typeof McpRoute
+  PipelineRoute: typeof PipelineRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ClientiIdRoute: typeof ClientiIdRoute
@@ -133,11 +159,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/followup': {
+      id: '/followup'
+      path: '/followup'
+      fullPath: '/followup'
+      preLoaderRoute: typeof FollowupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipeline': {
+      id: '/pipeline'
+      path: '/pipeline'
+      fullPath: '/pipeline'
+      preLoaderRoute: typeof PipelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -180,7 +220,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FollowupRoute: FollowupRoute,
   McpRoute: McpRoute,
+  PipelineRoute: PipelineRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,

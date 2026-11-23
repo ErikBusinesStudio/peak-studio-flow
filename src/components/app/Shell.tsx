@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LogOut, Mountain, Users } from "lucide-react";
+import { BellRing, Kanban, LogOut, Mountain, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logoAsset from "@/assets/peak-logo.png.asset.json";
 
 const NAV = [
   { to: "/", label: "Home", icon: Mountain },
   { to: "/clienti", label: "Clienti", icon: Users },
+  { to: "/pipeline", label: "Pipeline", icon: Kanban },
+  { to: "/followup", label: "Follow-up", icon: BellRing },
 ] as const;
 
 export function Shell({ children }: { children: ReactNode }) {
