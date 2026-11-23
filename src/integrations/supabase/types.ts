@@ -32,6 +32,75 @@ export type Database = {
         }
         Relationships: []
       }
+      clienti: {
+        Row: {
+          categoria: string
+          comune: string | null
+          created_at: string
+          email: string | null
+          fonte: string | null
+          ha_sito: boolean | null
+          id: string
+          indirizzo: string | null
+          motivo_rifiuto: string | null
+          nome: string
+          note: string | null
+          orari: Json | null
+          prossimo_contatto: string | null
+          referente: string | null
+          sito_web: string | null
+          social: string | null
+          stato: string
+          storico: boolean
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string
+          comune?: string | null
+          created_at?: string
+          email?: string | null
+          fonte?: string | null
+          ha_sito?: boolean | null
+          id?: string
+          indirizzo?: string | null
+          motivo_rifiuto?: string | null
+          nome: string
+          note?: string | null
+          orari?: Json | null
+          prossimo_contatto?: string | null
+          referente?: string | null
+          sito_web?: string | null
+          social?: string | null
+          stato?: string
+          storico?: boolean
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          comune?: string | null
+          created_at?: string
+          email?: string | null
+          fonte?: string | null
+          ha_sito?: boolean | null
+          id?: string
+          indirizzo?: string | null
+          motivo_rifiuto?: string | null
+          nome?: string
+          note?: string | null
+          orari?: Json | null
+          prossimo_contatto?: string | null
+          referente?: string | null
+          sito_web?: string | null
+          social?: string | null
+          stato?: string
+          storico?: boolean
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           collected: number
@@ -73,6 +142,47 @@ export type Database = {
           zona?: string | null
         }
         Relationships: []
+      }
+      contatti_log: {
+        Row: {
+          canale: string
+          cliente_id: string
+          created_at: string
+          data: string | null
+          esito: string | null
+          id: string
+          note: string | null
+          prossimo_followup: string | null
+        }
+        Insert: {
+          canale?: string
+          cliente_id: string
+          created_at?: string
+          data?: string | null
+          esito?: string | null
+          id?: string
+          note?: string | null
+          prossimo_followup?: string | null
+        }
+        Update: {
+          canale?: string
+          cliente_id?: string
+          created_at?: string
+          data?: string | null
+          esito?: string | null
+          id?: string
+          note?: string | null
+          prossimo_followup?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contatti_log_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clienti"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       costs: {
         Row: {
@@ -161,6 +271,33 @@ export type Database = {
         }
         Relationships: []
       }
+      impostazioni: {
+        Row: {
+          data_zero: string | null
+          id: number
+          nome: string
+          obiettivo: number
+          scadenza: string
+          updated_at: string
+        }
+        Insert: {
+          data_zero?: string | null
+          id?: number
+          nome?: string
+          obiettivo?: number
+          scadenza?: string
+          updated_at?: string
+        }
+        Update: {
+          data_zero?: string | null
+          id?: number
+          nome?: string
+          obiettivo?: number
+          scadenza?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       incomes: {
         Row: {
           amount: number
@@ -245,6 +382,106 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manutenzioni: {
+        Row: {
+          attiva: boolean
+          attiva_dal: string | null
+          cliente_id: string
+          created_at: string
+          giorno_incasso: number
+          id: string
+          importo_lordo: number
+          importo_netto: number | null
+          mesi_storico: number
+          note: string | null
+          trattenuta_pct: number
+        }
+        Insert: {
+          attiva?: boolean
+          attiva_dal?: string | null
+          cliente_id: string
+          created_at?: string
+          giorno_incasso?: number
+          id?: string
+          importo_lordo?: number
+          importo_netto?: number | null
+          mesi_storico?: number
+          note?: string | null
+          trattenuta_pct?: number
+        }
+        Update: {
+          attiva?: boolean
+          attiva_dal?: string | null
+          cliente_id?: string
+          created_at?: string
+          giorno_incasso?: number
+          id?: string
+          importo_lordo?: number
+          importo_netto?: number | null
+          mesi_storico?: number
+          note?: string | null
+          trattenuta_pct?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manutenzioni_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clienti"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pagamenti: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data: string | null
+          data_label: string | null
+          descrizione: string
+          id: string
+          importo_lordo: number
+          importo_netto: number | null
+          periodo: string
+          stato: string
+          trattenuta_pct: number
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data?: string | null
+          data_label?: string | null
+          descrizione: string
+          id?: string
+          importo_lordo: number
+          importo_netto?: number | null
+          periodo?: string
+          stato?: string
+          trattenuta_pct?: number
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data?: string | null
+          data_label?: string | null
+          descrizione?: string
+          id?: string
+          importo_lordo?: number
+          importo_netto?: number | null
+          periodo?: string
+          stato?: string
+          trattenuta_pct?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamenti_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clienti"
             referencedColumns: ["id"]
           },
         ]
@@ -343,6 +580,47 @@ export type Database = {
           save_target?: number | null
         }
         Relationships: []
+      }
+      servizi_venduti: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data: string | null
+          descrizione: string | null
+          id: string
+          importo: number
+          stato: string
+          tipo: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data?: string | null
+          descrizione?: string | null
+          id?: string
+          importo?: number
+          stato?: string
+          tipo?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data?: string | null
+          descrizione?: string | null
+          id?: string
+          importo?: number
+          stato?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servizi_venduti_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clienti"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       settings: {
         Row: {
