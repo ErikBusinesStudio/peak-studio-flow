@@ -17,18 +17,17 @@ export type Addon = { id: string; cat: string; nome: string; prezzo: number | nu
 export const ADDON: Addon[] = [
   { id: "gbp", cat: "Visibilità", nome: "Scheda Google Business", prezzo: 40 },
   { id: "analytics", cat: "Visibilità", nome: "Statistiche e conversioni", prezzo: 60 },
-  { id: "lingua", cat: "Contenuti", nome: "Lingua aggiuntiva", prezzo: 90, inclusoIn: ["business"] },
+  { id: "lingua", cat: "Contenuti", nome: "Lingua aggiuntiva", prezzo: 30, inclusoIn: ["business"] },
   { id: "foto", cat: "Contenuti", nome: "Selezione immagini", prezzo: 40 },
   { id: "prenotazioni", cat: "Funzioni", nome: "Prenotazioni online", prezzo: 150, inclusoIn: ["premium"] },
   { id: "moduli", cat: "Funzioni", nome: "Moduli di preventivo", prezzo: 90 },
-  { id: "migrazione", cat: "Crescita", nome: "Migrazione dal vecchio sito", prezzo: 150 },
   { id: "automazioni", cat: "Crescita", nome: "Automazioni e CRM", prezzo: 190 },
 ];
 
 export const PAGAMENTO = "30% alla conferma, 70% alla consegna";
 
 export const IDENTITA = [
-  { id: "nome", nome: "Nome e naming", prezzoDa: 90 },
+  { id: "nome", nome: "Nome e dominio", prezzoDa: 30 },
   { id: "logo", nome: "Logo", prezzoDa: 150 },
   { id: "coordinata", nome: "Logo + immagine coordinata", prezzoDa: 290 },
   { id: "completa", nome: "Identità completa", prezzoDa: 590 },
