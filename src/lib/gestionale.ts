@@ -11,6 +11,7 @@ export type Categoria =
 export type Canale = "whatsapp" | "telefono" | "di_persona" | "email" | "social" | "altro";
 export type TipoServizio = "sito" | "ecommerce" | "landing" | "logo" | "google_business" | "locandine" | "manutenzione" | "dominio_hosting" | "altro";
 export type Periodo = "prima" | "dopo";
+export type Modalita = "di_persona" | "telefono" | "da_definire";
 
 export interface Cliente {
   id: string;
@@ -31,6 +32,17 @@ export interface Cliente {
   prossimo_contatto: string | null;
   note: string | null;
   orari: Record<string, string> | null;
+  /* giro proposte (migrazione 24/11/2026): campi opzionali, assenti finché la migrazione non è applicata */
+  zona?: string | null;
+  latitudine?: number | null;
+  longitudine?: number | null;
+  distanza_km?: number | null;
+  minuti_da_casa?: number | null;
+  priorita?: number | null;
+  modalita_contatto?: Modalita | null;
+  motivo_modalita?: string | null;
+  da_confermare?: string | null;
+  ricerca_il?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -107,6 +119,24 @@ export const TIPI_SERVIZIO: { id: TipoServizio; label: string }[] = [
 export const tipoServizioLabel = (t: TipoServizio) => TIPI_SERVIZIO.find((x) => x.id === t)?.label ?? t;
 
 export const GIORNI = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
+
+/* ---------- Giro proposte ---------- */
+export const MODALITA: { id: Modalita; label: string; cls: string }[] = [
+  { id: "di_persona", label: "Di persona", cls: "bg-deep-900 text-white border-deep-900" },
+  { id: "telefono", label: "Telefono", cls: "bg-amber-100 text-amber-900 border-amber-300" },
+  { id: "da_definire", label: "Da definire", cls: "bg-slate-100 text-slate-700 border-slate-300" },
+];
+export const modalitaCfg = (m: Modalita | null | undefined) => MODALITA.find((x) => x.id === m) ?? null;
+
+/** "~5 min · 3,4 km da Casalzuigno" (stima da coordinate, non da navigatore) */
+export const distanzaLabel = (c: Pick<Cliente, "minuti_da_casa" | "distanza_km">) =>
+  c.minuti_da_casa == null ? null : `~${c.minuti_da_casa} min · ${String(c.distanza_km ?? "").replace(".", ",")} km da Casalzuigno`;
+
+/** Orario di oggi (es. "9–18") dalla scheda, se registrato. */
+export const orarioOggi = (c: Pick<Cliente, "orari">, now = new Date()) => {
+  if (!c.orari) return null;
+  return c.orari[GIORNI[(now.getDay() + 6) % 7]] ?? null;
+};
 
 /* ---------- Formattazione ---------- */
 export const fmtEur = (n: number) =>

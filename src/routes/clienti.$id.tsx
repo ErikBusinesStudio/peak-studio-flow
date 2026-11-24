@@ -149,6 +149,9 @@ function TabInfo({ c }: { c: Cliente }) {
         <Riga label="Comune">{c.comune}</Riga>
         <Riga label="Ha già un sito">{c.ha_sito === null ? null : c.ha_sito ? "Sì" : "No"}</Riga>
         <Riga label="Come l'ho trovato">{c.fonte}</Riga>
+        <Riga label="Giro proposte">{c.modalita_contatto && c.modalita_contatto !== "da_definire" ? `${c.priorita ? `#${c.priorita} · ` : ""}${c.modalita_contatto === "di_persona" ? "Di persona" : "Telefono"}${c.motivo_modalita ? ` — ${c.motivo_modalita}` : ""}` : null}</Riga>
+        <Riga label="Distanza da casa">{c.minuti_da_casa != null ? `~${c.minuti_da_casa} min · ${String(c.distanza_km ?? "").replace(".", ",")} km da Casalzuigno (stima)` : null}</Riga>
+        <Riga label="Da confermare"><span className="font-semibold text-amber-800">{c.da_confermare}</span></Riga>
         <Riga label="Prossimo contatto">{c.prossimo_contatto ? fmtData(c.prossimo_contatto) : null}</Riga>
         {c.stato === "rifiutato" && <Riga label="Motivo rifiuto">{c.motivo_rifiuto}</Riga>}
         <Riga label="Note"><span className="whitespace-pre-wrap">{c.note}</span></Riga>
