@@ -20,8 +20,8 @@ export const Route = createFileRoute("/visite")({
 /* I giri raggruppano le zone vicine tra loro: un solo viaggio per ogni gruppo. */
 const GIRI: { id: string; titolo: string; descr: string; zone: string[] }[] = [
   { id: "g1", titolo: "Giro 1 · Casalzuigno, Cuveglio, Cuvio", descr: "Entro 5 km da casa: un pomeriggio, tutto a pochi minuti", zone: ["Casalzuigno", "Cuveglio", "Cuvio", "Cuveglio est"] },
-  { id: "g2", titolo: "Giro 2 · Brenta, Cittiglio, Caravate", descr: "Verso ovest lungo la valle, 3–8 km da casa", zone: ["Brenta", "Cittiglio", "Caravate"] },
-  { id: "g3", titolo: "Giro 3 · Besozzo e Gavirate", descr: "Il più lontano (~14 km, 20–25 min): un solo viaggio per quattro attività", zone: ["Besozzo", "Gavirate"] },
+  { id: "g2", titolo: "Giro 2 · Brenta, Cittiglio, Caravate", descr: "Verso ovest lungo la valle, 3–11 km da casa (Laveno a 4–5 km da Cittiglio)", zone: ["Brenta", "Cittiglio", "Caravate", "Laveno-Mombello"] },
+  { id: "g3", titolo: "Giro 3 · Cocquio, Besozzo e Gavirate", descr: "Verso sud: Cocquio ~10 min, Gavirate ~14 km (20–25 min). Un solo viaggio", zone: ["Cocquio-Trevisago", "Besozzo", "Gavirate"] },
 ];
 const PRIORITA_RICONTATTO = 8; // le prime 8 posizioni sono i già contattati senza esito
 
